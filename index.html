@@ -1,0 +1,2724 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Last Piece | Honoring Life With Grace</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,400;1,600&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            white: '#F5F0E8',
+                            dark: '#080808',
+                            charcoal: '#101010',
+                            gray: '#1e1e1e',
+                            accent: '#c9a96e'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Jost', 'sans-serif'],
+                        serif: ['Cormorant Garamond', 'serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <style>
+        body { background-color: #080808; color: #F5F0E8; overflow-x: hidden; }
+        .fade-in { opacity: 0; transform: translateY(28px); transition: opacity 0.9s ease-out, transform 0.9s ease-out; }
+        .fade-in.visible { opacity: 1; transform: translateY(0); }
+        .btn-glow:hover { box-shadow: 0 0 24px rgba(201,169,110,0.35); transform: translateY(-2px); }
+        #canvas-container { width:100%; height:580px; cursor:grab; border-radius:1rem; overflow:hidden; background: radial-gradient(ellipse at 50% 30%, #0a0a12 0%, #030308 100%); }
+        #canvas-container:active { cursor:grabbing; }
+        .glass-panel { background: rgba(16,16,16,0.75); backdrop-filter: blur(12px); border: 1px solid rgba(201,169,110,0.12); }
+        #mobile-menu { transition: max-height 0.4s ease-in-out; max-height:0; overflow:hidden; }
+        #mobile-menu.open { max-height:400px; }
+        .scrollbar-thin::-webkit-scrollbar { width:5px; }
+        .scrollbar-thin::-webkit-scrollbar-track { background:#111; }
+        .scrollbar-thin::-webkit-scrollbar-thumb { background:#444; border-radius:10px; }
+        .accent-line { width:48px; height:2px; background: linear-gradient(90deg, #c9a96e, transparent); }
+        #chatbot-window { display:none; position:fixed; bottom:90px; right:24px; width:340px; max-height:480px; z-index:999; border-radius:16px; flex-direction:column; box-shadow: 0 8px 40px rgba(0,0,0,0.7); }
+        #chatbot-window.open { display:flex; }
+        #chat-messages { flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:10px; min-height:0; }
+        .chat-msg-user { align-self:flex-end; background:#c9a96e; color:#111; border-radius:12px 12px 2px 12px; padding:8px 12px; max-width:80%; font-size:0.85rem; }
+        .chat-msg-ai { align-self:flex-start; background:#1a1a1a; border:1px solid #333; color:#F5F0E8; border-radius:12px 12px 12px 2px; padding:8px 12px; max-width:90%; font-size:0.85rem; line-height:1.5; }
+        .chat-typing { align-self:flex-start; background:#1a1a1a; border:1px solid #333; color:#888; border-radius:12px 12px 12px 2px; padding:8px 12px; font-size:0.8rem; font-style:italic; }
+        @keyframes spinSeal { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes floatUp { 0% { transform: translateY(0) scale(1); opacity: 1; } 100% { transform: translateY(-120px) scale(0.3); opacity: 0; } }
+        @keyframes pulseGold { 0%,100% { box-shadow: 0 0 20px rgba(201,169,110,0.3); } 50% { box-shadow: 0 0 40px rgba(201,169,110,0.6), 0 0 80px rgba(201,169,110,0.2); } }
+    </style>
+</head>
+<body class="font-sans antialiased">
+
+    <!-- Navigation -->
+    <nav class="fixed w-full z-50 glass-panel border-b border-brand-gray transition-all duration-300" id="navbar">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <div class="flex-shrink-0 flex items-center gap-3 cursor-pointer" onclick="window.scrollTo(0,0)">
+                    <i class="ph ph-flower-lotus text-2xl text-brand-accent"></i>
+                    <span class="font-serif text-2xl font-semibold tracking-wide text-brand-white">Last Piece</span>
+                </div>
+                <div class="hidden md:flex space-x-8 items-center">
+                    <a href="#services" class="text-brand-white/60 hover:text-brand-white transition-colors text-sm tracking-wider">Services</a>
+                    <a href="#customizer" class="text-brand-white/60 hover:text-brand-white transition-colors text-sm tracking-wider">Casket Design</a>
+                    <a href="#about" class="text-brand-white/60 hover:text-brand-white transition-colors text-sm tracking-wider">About</a>
+                    <a href="#team" class="text-brand-white/60 hover:text-brand-white transition-colors text-sm tracking-wider">Team</a>
+                    <a href="#locations" class="text-brand-white/60 hover:text-brand-white transition-colors text-sm tracking-wider">Locations</a>
+                    <button onclick="openCart()" class="relative text-brand-white/60 hover:text-brand-accent transition-colors text-sm tracking-wider flex items-center gap-2">
+                        <i class="ph ph-shopping-cart text-xl"></i>
+                        <span id="nav-cart-count" class="hidden absolute -top-2 -right-2 bg-brand-accent text-black text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">0</span>
+                    </button>
+                    <a href="#contact" class="bg-brand-accent text-black font-semibold px-6 py-2 rounded-full text-sm transition-all btn-glow">Contact Us</a>
+                </div>
+                <div class="md:hidden">
+                    <button id="mobile-menu-btn" class="text-brand-white">
+                        <i class="ph ph-list text-3xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div id="mobile-menu" class="md:hidden bg-brand-charcoal border-t border-brand-gray">
+            <div class="px-4 pt-2 pb-4 space-y-1 text-center">
+                <a href="#services" class="block px-3 py-2 text-brand-white/70 hover:text-brand-white">Services</a>
+                <a href="#customizer" class="block px-3 py-2 text-brand-white/70 hover:text-brand-white">Casket Design</a>
+                <a href="#about" class="block px-3 py-2 text-brand-white/70 hover:text-brand-white">About</a>
+                <a href="#locations" class="block px-3 py-2 text-brand-white/70 hover:text-brand-white">Locations</a>
+                <a href="#contact" class="block px-3 py-2 text-brand-accent font-medium">Contact Us</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="bg-brand-gray text-center py-2 px-4 text-sm z-40 relative mt-20 hidden md:block text-brand-white/70">
+        Available 24/7 for immediate assistance: <a href="tel:+18005550199" class="text-brand-accent underline">1-800-555-0199</a>
+    </div>
+
+    <!-- Hero -->
+    <header class="relative h-screen flex items-center justify-center overflow-hidden">
+        <div class="absolute inset-0 z-0 bg-black">
+            <img src="https://images.unsplash.com/photo-1440688807730-73e4e20f15fb?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80" alt="Misty" class="w-full h-full object-cover opacity-30 grayscale">
+            <div class="absolute inset-0 bg-gradient-to-b from-transparent via-brand-dark/70 to-brand-dark"></div>
+        </div>
+        <div class="relative z-10 text-center px-4 max-w-4xl mx-auto fade-in">
+            <span class="block text-brand-accent/80 uppercase tracking-widest text-xs mb-4 font-medium">Welcome to Last Piece</span>
+            <h1 class="text-5xl md:text-7xl font-serif font-light mb-6 leading-tight">Honoring Life<br><span class="italic text-brand-white/50">With Grace.</span></h1>
+            <p class="text-lg md:text-xl text-brand-white/50 mb-10 max-w-2xl mx-auto font-light">Compassionate funeral services designed with care, dignity, and a commitment to helping families heal.</p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="#services" class="bg-brand-accent text-black font-semibold px-8 py-4 rounded-full text-base transition-all btn-glow w-full sm:w-auto">Our Services</a>
+                <a href="#contact" class="bg-transparent border border-brand-white/20 hover:bg-brand-white/10 text-brand-white px-8 py-4 rounded-full text-base transition-all w-full sm:w-auto">Contact Us</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- About -->
+    <section id="about" class="py-24 bg-brand-charcoal">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+                <div class="fade-in">
+                    <div class="relative rounded-2xl overflow-hidden shadow-2xl">
+                        <!-- Elegant candle/memorial atmosphere built in CSS since external images may not load -->
+                        <div class="w-full h-[480px] relative overflow-hidden" style="background: linear-gradient(160deg, #0e1420 0%, #1a1008 40%, #0a0e18 100%);">
+                            <!-- Atmospheric candle glow layers -->
+                            <div class="absolute inset-0" style="background: radial-gradient(ellipse 60% 50% at 35% 70%, rgba(255,140,30,0.18) 0%, transparent 70%), radial-gradient(ellipse 40% 40% at 70% 65%, rgba(255,120,20,0.12) 0%, transparent 60%);"></div>
+                            <!-- Stars -->
+                            <div class="absolute inset-0" style="background-image: radial-gradient(1px 1px at 20% 15%, rgba(255,255,255,0.6) 0%, transparent 100%), radial-gradient(1px 1px at 55% 8%, rgba(255,255,255,0.5) 0%, transparent 100%), radial-gradient(1px 1px at 80% 20%, rgba(255,255,255,0.4) 0%, transparent 100%), radial-gradient(1px 1px at 10% 35%, rgba(255,255,255,0.3) 0%, transparent 100%), radial-gradient(1px 1px at 90% 40%, rgba(255,255,255,0.5) 0%, transparent 100%), radial-gradient(1.5px 1.5px at 45% 12%, rgba(255,255,255,0.7) 0%, transparent 100%), radial-gradient(1px 1px at 65% 30%, rgba(255,255,255,0.4) 0%, transparent 100%);"></div>
+                            <!-- Moon -->
+                            <div class="absolute rounded-full" style="width:80px;height:80px;top:8%;right:15%;background:radial-gradient(circle, rgba(220,230,255,0.25) 0%, transparent 70%); border: 1px solid rgba(200,210,255,0.1);"></div>
+                            <!-- Casket silhouette -->
+                            <div class="absolute" style="bottom:22%;left:50%;transform:translateX(-50%);width:260px;height:80px;background:linear-gradient(180deg,#2a1a0a 0%,#1a0e06 100%);border-radius:6px 6px 4px 4px;box-shadow:0 8px 40px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,200,100,0.1);"></div>
+                            <!-- Gold plate on casket -->
+                            <div class="absolute" style="bottom:32%;left:50%;transform:translateX(-50%);width:110px;height:26px;background:linear-gradient(135deg,#d4af37 0%,#f5d060 40%,#c8900a 100%);border-radius:3px;box-shadow:0 0 18px rgba(212,175,55,0.7), 0 2px 8px rgba(0,0,0,0.5);"></div>
+                            <!-- Two candles -->
+                            <div class="absolute" style="bottom:20%;left:36%;width:8px;height:80px;background:linear-gradient(180deg,#f5e8d0 0%,#e8d4a8 100%);border-radius:2px;box-shadow:0 0 20px rgba(255,140,30,0.5);"></div>
+                            <div class="absolute rounded-full" style="bottom:calc(20% + 80px);left:36%;transform:translateX(-1px);width:10px;height:10px;background:radial-gradient(circle,#fff8a0 0%,#ffaa20 50%,transparent 100%);box-shadow:0 0 16px 6px rgba(255,140,20,0.6);"></div>
+                            <div class="absolute" style="bottom:20%;right:36%;width:8px;height:70px;background:linear-gradient(180deg,#f5e8d0 0%,#e8d4a8 100%);border-radius:2px;box-shadow:0 0 20px rgba(255,140,30,0.5);"></div>
+                            <div class="absolute rounded-full" style="bottom:calc(20% + 70px);right:36%;transform:translateX(1px);width:10px;height:10px;background:radial-gradient(circle,#fff8a0 0%,#ffaa20 50%,transparent 100%);box-shadow:0 0 16px 6px rgba(255,140,20,0.6);"></div>
+                            <!-- Ground mist -->
+                            <div class="absolute bottom-0 left-0 right-0 h-24" style="background:linear-gradient(180deg, transparent 0%, rgba(20,30,50,0.7) 100%);"></div>
+                            <!-- Overlay text -->
+                            <div class="absolute bottom-8 left-0 right-0 text-center">
+                                <p class="text-brand-accent/60 text-xs uppercase tracking-[0.25em] font-medium">Serving Families Since 2024</p>
+                            </div>
+                            <!-- Gold border overlay -->
+                            <div class="absolute inset-4 rounded-xl pointer-events-none" style="border: 1px solid rgba(201,169,110,0.12);"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="fade-in">
+                    <span class="text-brand-accent text-xs uppercase tracking-widest font-medium">Our Story</span>
+                    <h2 class="text-4xl font-serif mt-3 mb-6">A New Voice in Compassionate Care</h2>
+                    <div class="accent-line mb-8"></div>
+                    <p class="text-brand-white/55 text-lg leading-relaxed mb-6 font-light">Last Piece is a newly founded funeral home built on a simple belief — that every life deserves a farewell as unique and meaningful as the person who lived it.</p>
+                    <p class="text-brand-white/55 text-lg leading-relaxed mb-8 font-light">As a new business, we bring fresh eyes, modern tools, and deep personal commitment to every family we serve. We handle every detail so you can simply be present.</p>
+                    <div class="grid grid-cols-2 gap-6 mt-8 border-t border-brand-gray/60 pt-8">
+                        <div>
+                            <h3 class="text-3xl font-serif text-brand-accent mb-1">New</h3>
+                            <p class="text-xs text-brand-white/40 uppercase tracking-wider">Business, Fresh Vision</p>
+                        </div>
+                        <div>
+                            <h3 class="text-3xl font-serif text-brand-accent mb-1">24/7</h3>
+                            <p class="text-xs text-brand-white/40 uppercase tracking-wider">Compassionate Care</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services -->
+    <section id="services" class="py-24 bg-brand-dark">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-16 fade-in">
+                <h2 class="text-4xl font-serif mb-4">Comprehensive Services</h2>
+                <div class="accent-line mx-auto mb-6"></div>
+                <p class="text-brand-white/50 font-light text-lg">We provide an extensive range of services to accommodate every family's unique wishes and cultural traditions.</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div class="glass-panel p-8 rounded-2xl hover:-translate-y-2 transition-transform duration-300 fade-in">
+                    <i class="ph ph-church text-3xl text-brand-accent mb-5"></i>
+                    <h3 class="text-xl font-serif mb-3">Traditional Funerals</h3>
+                    <p class="text-brand-white/45 font-light text-sm leading-relaxed">Includes viewing, formal ceremony, and burial arrangements with professional guidance every step of the way.</p>
+                </div>
+                <div class="glass-panel p-8 rounded-2xl hover:-translate-y-2 transition-transform duration-300 fade-in">
+                    <i class="ph ph-dove text-3xl text-brand-accent mb-5"></i>
+                    <h3 class="text-xl font-serif mb-3">Memorial Services</h3>
+                    <p class="text-brand-white/45 font-light text-sm leading-relaxed">Flexible services without a casket present. Designed around remembrance and sharing beautiful memories.</p>
+                </div>
+                <div class="glass-panel p-8 rounded-2xl hover:-translate-y-2 transition-transform duration-300 fade-in">
+                    <i class="ph ph-sun-horizon text-3xl text-brand-accent mb-5"></i>
+                    <h3 class="text-xl font-serif mb-3">Celebration of Life</h3>
+                    <p class="text-brand-white/45 font-light text-sm leading-relaxed">Personalized, uplifting gatherings focused on honoring unique life stories, achievements, and joy.</p>
+                </div>
+                <div class="glass-panel p-8 rounded-2xl hover:-translate-y-2 transition-transform duration-300 fade-in">
+                    <i class="ph ph-handshake text-3xl text-brand-accent mb-5"></i>
+                    <h3 class="text-xl font-serif mb-3">Complete After-Death Care</h3>
+                    <p class="text-brand-white/45 font-light text-sm leading-relaxed">We handle everything: paperwork, permits, social security notification, and estate coordination.</p>
+                </div>
+                <div class="glass-panel p-8 rounded-2xl hover:-translate-y-2 transition-transform duration-300 fade-in">
+                    <i class="ph ph-fire text-3xl text-brand-accent mb-5"></i>
+                    <h3 class="text-xl font-serif mb-3">Private Cremation</h3>
+                    <p class="text-brand-white/45 font-light text-sm leading-relaxed">Professional cremation services ensuring your loved one is treated with the highest standard of dignity.</p>
+                </div>
+                <div class="glass-panel p-8 rounded-2xl hover:-translate-y-2 transition-transform duration-300 fade-in">
+                    <i class="ph ph-tree text-3xl text-brand-accent mb-5"></i>
+                    <h3 class="text-xl font-serif mb-3">Alternative Burials</h3>
+                    <p class="text-brand-white/45 font-light text-sm leading-relaxed">Modern alternatives including green/eco-friendly burials, tree-pod burials, and sea scatterings.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 3D Casket Customizer -->
+    <section id="customizer" class="py-24 bg-brand-charcoal relative border-y border-brand-gray">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-12 fade-in">
+                <h2 class="text-4xl font-serif mb-4">Interactive Casket Design</h2>
+                <div class="accent-line mx-auto mb-6"></div>
+                <p class="text-brand-white/50 font-light text-lg">Customize your selection with our 3D viewer. Click and drag to rotate.</p>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start fade-in">
+                <!-- Controls -->
+                <div class="glass-panel p-8 rounded-2xl lg:col-span-1 space-y-5 h-[580px] overflow-y-auto scrollbar-thin">
+                    <h3 class="text-2xl font-serif mb-4 border-b border-brand-gray pb-4">Specifications</h3>
+                    <div>
+                        <label class="block text-xs font-medium text-brand-white/60 mb-2 uppercase tracking-wider">Wood Material</label>
+                        <select id="wood-select" class="w-full bg-brand-dark border border-brand-gray rounded-lg px-4 py-3 text-brand-white focus:outline-none focus:border-brand-accent transition-colors text-sm">
+                            <option value="pine" data-price="800">Classic Pine ($800)</option>
+                            <option value="oak" data-price="1500" selected>Solid Oak ($1,500)</option>
+                            <option value="cherry" data-price="2200">Rich Cherry ($2,200)</option>
+                            <option value="mahogany" data-price="3500">Premium Mahogany ($3,500)</option>
+                            <option value="walnut" data-price="2800">Dark Walnut ($2,800)</option>
+                            <option value="ebony" data-price="5500">Luxury Ebony ($5,500)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-brand-white/60 mb-2 uppercase tracking-wider">Size</label>
+                        <select id="size-select" class="w-full bg-brand-dark border border-brand-gray rounded-lg px-4 py-3 text-brand-white focus:outline-none focus:border-brand-accent transition-colors text-sm">
+                            <option value="compact" data-price="-200">Compact / Eco-Saver (-$200)</option>
+                            <option value="standard" data-price="0" selected>Standard (Included)</option>
+                            <option value="std_wide" data-price="250">Standard - Extra Width (+$250)</option>
+                            <option value="oversized" data-price="450">Oversized (+$450)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-brand-white/60 mb-2 uppercase tracking-wider">Hardware Design</label>
+                        <select id="design-select" class="w-full bg-brand-dark border border-brand-gray rounded-lg px-4 py-3 text-brand-white focus:outline-none focus:border-brand-accent transition-colors text-sm">
+                            <option value="simple" data-price="0" selected>Classic Cylinders (Included)</option>
+                            <option value="black" data-price="250">Modern Geometric Bars (+$250)</option>
+                            <option value="silver" data-price="200">Hexagonal Steel (+$200)</option>
+                            <option value="platinum" data-price="1200">Hexagonal Platinum (+$1,200)</option>
+                            <option value="bronze" data-price="350">Ornate Bronze Spheres (+$350)</option>
+                            <option value="ornate" data-price="600">Ornate Gold Spheres (+$600)</option>
+                            <option value="none" data-price="-100">Minimalist / No Handles (-$100)</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-medium text-brand-white/60 mb-2 uppercase tracking-wider">Name Plate Finish</label>
+                        <select id="plate-select" class="w-full bg-brand-dark border border-brand-gray rounded-lg px-4 py-3 text-brand-white focus:outline-none focus:border-brand-accent transition-colors text-sm">
+                            <option value="silver" data-price="100" selected>Steel Engraved (+$100)</option>
+                            <option value="gold" data-price="150">Premium Gold (+$150)</option>
+                        </select>
+                    </div>
+                    <div id="engraving-container">
+                        <label class="block text-xs font-medium text-brand-white/60 mb-2 uppercase tracking-wider">Engraving Text</label>
+                        <input type="text" id="engraving-text" maxlength="28" placeholder="Type name here..." class="w-full bg-brand-dark border border-brand-gray rounded-lg px-4 py-3 text-brand-white focus:outline-none focus:border-brand-accent transition-colors text-sm">
+                    </div>
+                    <div class="pt-4 border-t border-brand-gray">
+                        <p class="text-xs text-brand-white/40 uppercase tracking-wide mb-1">Estimated Total</p>
+                        <p class="text-4xl font-serif text-brand-accent" id="total-price">$1,500.00</p>
+                        <p class="text-xs text-brand-white/25 mt-1">* Prices are estimates and subject to change.</p>
+                    </div>
+                    <button onclick="addToCart()" class="w-full mt-2 bg-brand-accent text-black font-bold py-4 rounded-xl transition-all btn-glow text-sm tracking-widest uppercase flex items-center justify-center gap-2">
+                        <i class="ph ph-shopping-cart-simple text-lg"></i> Add to Cart
+                    </button>
+                </div>
+                <!-- 3D Canvas -->
+                <div class="lg:col-span-2 relative">
+                    <div id="canvas-container" class="shadow-2xl ring-1 ring-brand-gray/50"></div>
+                    <div class="absolute bottom-4 right-4 bg-brand-dark/80 border border-brand-gray px-4 py-2 rounded-full text-xs text-brand-white/50 backdrop-blur-sm pointer-events-none">
+                        <i class="ph ph-arrows-out-cardinal align-middle mr-1"></i> Click & Drag to Rotate
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Locations -->
+    <section id="locations" class="py-24 bg-brand-dark">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-16 fade-in">
+                <h2 class="text-4xl font-serif mb-4">Our Locations</h2>
+                <div class="accent-line mx-auto mb-6"></div>
+                <p class="text-brand-white/50 font-light text-lg">As a new business, we're proudly establishing ourselves close to the communities we serve.</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+                <div class="glass-panel rounded-2xl overflow-hidden fade-in flex flex-col p-10">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-10 h-10 rounded-full bg-brand-accent/10 flex items-center justify-center">
+                            <i class="ph-fill ph-map-pin text-xl text-brand-accent"></i>
+                        </div>
+                        <span class="text-xs uppercase tracking-widest text-brand-accent font-medium">Headquarters</span>
+                    </div>
+                    <h3 class="text-2xl font-serif mb-2">Hillside, New Jersey</h3>
+                    <p class="text-brand-white/50 font-light mb-6 text-sm leading-relaxed">Our flagship location, featuring a private reflection garden and a spacious non-denominational chapel. This is where Last Piece began — built to serve the NJ community with care and dignity.</p>
+                    <div class="space-y-3 text-sm text-brand-white/60 mt-auto">
+                        <div class="flex items-center gap-3"><i class="ph ph-map-trifold text-brand-accent"></i><span>123 Tranquil Way, Hillside, NJ 07205</span></div>
+                        <div class="flex items-center gap-3"><i class="ph ph-clock text-brand-accent"></i><span>Open 24/7 by appointment</span></div>
+                        <div class="flex items-center gap-3"><i class="ph ph-phone text-brand-accent"></i><span>1-800-555-0199</span></div>
+                    </div>
+                </div>
+                <div class="glass-panel rounded-2xl overflow-hidden fade-in flex flex-col p-10">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-10 h-10 rounded-full bg-brand-accent/10 flex items-center justify-center">
+                            <i class="ph ph-buildings text-xl text-brand-accent"></i>
+                        </div>
+                        <span class="inline-flex items-center gap-2 text-xs uppercase tracking-widest text-brand-white/40 font-medium">
+                            Coming Soon
+                            <span class="px-2 py-0.5 rounded border border-brand-white/20 text-brand-white/40">Spring 2027</span>
+                        </span>
+                    </div>
+                    <h3 class="text-2xl font-serif mb-2">Manhattan, New York</h3>
+                    <p class="text-brand-white/50 font-light mb-6 text-sm leading-relaxed">Our upcoming metropolitan location will bring our compassionate services directly to New York City families. Pre-planning consultations are already available now.</p>
+                    <div class="space-y-3 text-sm text-brand-white/60 mt-auto">
+                        <div class="flex items-center gap-3"><i class="ph ph-map-trifold text-brand-accent"></i><span>Manhattan, New York, NY</span></div>
+                        <div class="flex items-center gap-3"><i class="ph ph-envelope-simple text-brand-accent"></i><span><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="89fafcf9f9e6fbfdc9e5e8fafdf9e0eceaeca7eae6e4">[email&#160;protected]</a></span></div>
+                        <div class="flex items-center gap-3"><i class="ph ph-calendar text-brand-accent"></i><span>Pre-planning consultations available now</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonial -->
+    <section class="py-24 bg-brand-charcoal border-y border-brand-gray">
+        <div class="max-w-3xl mx-auto px-4 text-center fade-in">
+            <i class="ph-fill ph-quotes text-5xl text-brand-accent/20 mb-6 inline-block"></i>
+            <h2 class="text-2xl md:text-3xl font-serif italic leading-relaxed mb-8 text-brand-white/80">"Their compassion, grace, and attention to detail gave our family immense peace during the most difficult time of our lives. They truly handled everything."</h2>
+            <p class="text-brand-white/40 font-medium uppercase tracking-widest text-xs">— The Harrison Family</p>
+        </div>
+    </section>
+
+    <!-- Contact -->
+    <section id="contact" class="py-24 bg-brand-dark">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-16">
+                <div class="fade-in">
+                    <h2 class="text-4xl font-serif mb-6">We're Here When You Need Us</h2>
+                    <div class="accent-line mb-8"></div>
+                    <p class="text-brand-white/50 text-lg mb-10 font-light">Whether you are in immediate need or looking to pre-plan, we are ready to listen and assist.</p>
+                    <div class="space-y-8">
+                        <div class="flex items-start gap-4">
+                            <div class="bg-brand-charcoal p-4 rounded-full text-brand-accent"><i class="ph ph-phone text-xl"></i></div>
+                            <div><h4 class="font-medium mb-1">Call Us (24/7)</h4><p class="text-brand-white/45 text-sm">1-800-555-0199</p></div>
+                        </div>
+                        <div class="flex items-start gap-4">
+                            <div class="bg-brand-charcoal p-4 rounded-full text-brand-accent"><i class="ph ph-envelope-simple text-xl"></i></div>
+                            <div><h4 class="font-medium mb-1">Email Us</h4><p class="text-brand-white/45 text-sm"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="ef9c9a9f9f809d9baf838e9c9b9f868a8c8ac18c8082">[email&#160;protected]</a></p></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="fade-in">
+                    <form onsubmit="event.preventDefault(); alert('Thank you for reaching out. We will contact you shortly.');" class="glass-panel p-8 md:p-10 rounded-2xl">
+                        <h3 class="text-2xl font-serif mb-6">Send a Message</h3>
+                        <div class="space-y-5">
+                            <div>
+                                <label class="block text-xs font-medium text-brand-white/60 mb-2 uppercase tracking-wider">Full Name</label>
+                                <input type="text" required class="w-full bg-brand-dark border border-brand-gray rounded-lg px-4 py-3 text-brand-white focus:outline-none focus:border-brand-accent transition-colors text-sm" placeholder="John Doe">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-brand-white/60 mb-2 uppercase tracking-wider">Email Address</label>
+                                <input type="email" required class="w-full bg-brand-dark border border-brand-gray rounded-lg px-4 py-3 text-brand-white focus:outline-none focus:border-brand-accent transition-colors text-sm" placeholder="john@example.com">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-brand-white/60 mb-2 uppercase tracking-wider">How can we help?</label>
+                                <textarea required rows="4" class="w-full bg-brand-dark border border-brand-gray rounded-lg px-4 py-3 text-brand-white focus:outline-none focus:border-brand-accent transition-colors text-sm" placeholder="Please share your thoughts..."></textarea>
+                            </div>
+                            <button type="submit" class="w-full bg-brand-accent text-black font-bold py-4 rounded-lg transition-all btn-glow text-sm tracking-wider uppercase">Send Message</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Team / Credits Section -->
+    <section id="team" class="py-24 bg-brand-charcoal border-t border-brand-gray">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-16 fade-in">
+                <span class="text-brand-accent/70 text-xs uppercase tracking-widest font-medium">The Minds Behind It</span>
+                <h2 class="text-4xl font-serif mt-3 mb-4">Our Team</h2>
+                <div class="accent-line mx-auto mb-6"></div>
+                <p class="text-brand-white/45 font-light">Built with purpose, passion, and a lot of late nights.</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 fade-in">
+                <!-- Jakub -->
+                <div class="glass-panel rounded-2xl p-8 text-center group hover:-translate-y-2 transition-all duration-300 relative overflow-hidden">
+                    <div class="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" style="background: radial-gradient(ellipse at 50% 0%, rgba(201,169,110,0.06) 0%, transparent 70%);"></div>
+                    <div class="w-20 h-20 rounded-full mx-auto mb-5 flex items-center justify-center text-3xl font-serif text-brand-accent relative" style="background: linear-gradient(135deg, rgba(201,169,110,0.15) 0%, rgba(201,169,110,0.04) 100%); border: 1px solid rgba(201,169,110,0.2);">JW</div>
+                    <h3 class="text-2xl font-serif mb-1 text-brand-white">Jakub Wrona</h3>
+                    <p class="text-brand-accent text-xs uppercase tracking-widest mb-4 font-medium">Co-Founder & Lead Developer</p>
+                    <div class="w-8 h-px bg-brand-accent/30 mx-auto mb-4"></div>
+                    <p class="text-brand-white/45 text-sm leading-relaxed font-light">Architected the 3D casket customizer and core platform infrastructure. Passionate about building digital experiences that honor real human moments.</p>
+                    <div class="mt-6 flex justify-center gap-3">
+                        <span class="px-3 py-1 rounded-full text-xs border border-brand-gray text-brand-white/40">Three.js</span>
+                        <span class="px-3 py-1 rounded-full text-xs border border-brand-gray text-brand-white/40">Full-Stack</span>
+                    </div>
+                </div>
+                <!-- Mouhamed -->
+                <div class="glass-panel rounded-2xl p-8 text-center group hover:-translate-y-2 transition-all duration-300 relative overflow-hidden">
+                    <div class="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" style="background: radial-gradient(ellipse at 50% 0%, rgba(201,169,110,0.06) 0%, transparent 70%);"></div>
+                    <div class="w-20 h-20 rounded-full mx-auto mb-5 flex items-center justify-center text-3xl font-serif text-brand-accent relative" style="background: linear-gradient(135deg, rgba(201,169,110,0.15) 0%, rgba(201,169,110,0.04) 100%); border: 1px solid rgba(201,169,110,0.2);">MS</div>
+                    <h3 class="text-2xl font-serif mb-1 text-brand-white">Mouhamed Sow</h3>
+                    <p class="text-brand-accent text-xs uppercase tracking-widest mb-4 font-medium">Co-Founder & Design Lead</p>
+                    <div class="w-8 h-px bg-brand-accent/30 mx-auto mb-4"></div>
+                    <p class="text-brand-white/45 text-sm leading-relaxed font-light">Crafted the visual identity and user experience of Last Piece. Believes that design should feel respectful, warm, and approachable even in difficult times.</p>
+                    <div class="mt-6 flex justify-center gap-3">
+                        <span class="px-3 py-1 rounded-full text-xs border border-brand-gray text-brand-white/40">UI/UX</span>
+                        <span class="px-3 py-1 rounded-full text-xs border border-brand-gray text-brand-white/40">Branding</span>
+                    </div>
+                </div>
+                <!-- Chinedu -->
+                <div class="glass-panel rounded-2xl p-8 text-center group hover:-translate-y-2 transition-all duration-300 relative overflow-hidden">
+                    <div class="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" style="background: radial-gradient(ellipse at 50% 0%, rgba(201,169,110,0.06) 0%, transparent 70%);"></div>
+                    <div class="w-20 h-20 rounded-full mx-auto mb-5 flex items-center justify-center text-3xl font-serif text-brand-accent relative" style="background: linear-gradient(135deg, rgba(201,169,110,0.15) 0%, rgba(201,169,110,0.04) 100%); border: 1px solid rgba(201,169,110,0.2);">CN</div>
+                    <h3 class="text-2xl font-serif mb-1 text-brand-white">Chinedu Nwadike</h3>
+                    <p class="text-brand-accent text-xs uppercase tracking-widest mb-4 font-medium">Co-Founder & Operations</p>
+                    <div class="w-8 h-px bg-brand-accent/30 mx-auto mb-4"></div>
+                    <p class="text-brand-white/45 text-sm leading-relaxed font-light">Leads business development and operations strategy. Ensures every service we offer reflects the dignity and care that grieving families deserve.</p>
+                    <div class="mt-6 flex justify-center gap-3">
+                        <span class="px-3 py-1 rounded-full text-xs border border-brand-gray text-brand-white/40">Strategy</span>
+                        <span class="px-3 py-1 rounded-full text-xs border border-brand-gray text-brand-white/40">Operations</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-black border-t border-brand-gray pt-14 pb-10 text-center text-sm text-brand-white/25">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex items-center justify-center gap-2 mb-4">
+                <i class="ph ph-flower-lotus text-xl text-brand-accent/50"></i>
+                <span class="font-serif text-xl text-brand-white/40">Last Piece</span>
+            </div>
+            <p class="mb-3">Providing gentle guidance and respectful service.</p>
+            <p class="mb-8">&copy; 2026 Last Piece Funeral Services. All rights reserved.</p>
+            <button onclick="playIntroAnimation()" class="inline-flex items-center gap-2 bg-brand-charcoal border border-brand-gray hover:border-brand-accent/40 text-brand-white/50 hover:text-brand-white/80 px-5 py-2.5 rounded-full text-xs tracking-widest uppercase transition-all group">
+                <i class="ph ph-play-circle text-brand-accent text-base group-hover:scale-110 transition-transform"></i>
+                Watch Our Story
+            </button>
+        </div>
+    </footer>
+
+    <!-- ══════════════════════════════════════════ -->
+    <!-- CART DRAWER                               -->
+    <!-- ══════════════════════════════════════════ -->
+    <div id="cart-overlay" onclick="closeCart()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:1000;backdrop-filter:blur(4px);"></div>
+    <div id="cart-drawer" style="position:fixed;top:0;right:0;width:420px;max-width:95vw;height:100vh;z-index:1001;transform:translateX(100%);transition:transform 0.4s cubic-bezier(0.4,0,0.2,1);display:flex;flex-direction:column;background:#0d0d0d;border-left:1px solid rgba(201,169,110,0.18);box-shadow:-20px 0 60px rgba(0,0,0,0.8);">
+        <!-- Header -->
+        <div style="padding:24px;border-bottom:1px solid #1e1e1e;display:flex;align-items:center;justify-content:space-between;background:#101010;">
+            <div style="display:flex;align-items:center;gap:10px;">
+                <i class="ph ph-shopping-cart" style="color:#c9a96e;font-size:1.3rem;"></i>
+                <span style="font-family:'Cormorant Garamond',serif;font-size:1.4rem;color:#F5F0E8;">Your Selections</span>
+                <span id="cart-count-badge" style="background:#c9a96e;color:#111;font-size:0.7rem;font-weight:700;padding:2px 8px;border-radius:20px;display:none;">0</span>
+            </div>
+            <button onclick="closeCart()" style="color:#F5F0E8;opacity:0.4;hover:opacity:1;background:none;border:none;cursor:pointer;font-size:1.3rem;padding:4px;"><i class="ph ph-x"></i></button>
+        </div>
+        <!-- Items -->
+        <div id="cart-items" style="flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:16px;">
+            <div id="cart-empty" style="text-align:center;padding:60px 20px;color:rgba(245,240,232,0.25);">
+                <i class="ph ph-flower-lotus" style="font-size:3rem;color:rgba(201,169,110,0.2);display:block;margin-bottom:16px;"></i>
+                <p style="font-family:'Cormorant Garamond',serif;font-size:1.2rem;margin-bottom:8px;">No selections yet</p>
+                <p style="font-size:0.8rem;line-height:1.6;">Use the casket designer above to configure your selection and add it here.</p>
+            </div>
+        </div>
+        <!-- Footer total + checkout -->
+        <div id="cart-footer" style="display:none;padding:20px;border-top:1px solid #1e1e1e;background:#101010;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                <span style="color:rgba(245,240,232,0.5);font-size:0.75rem;text-transform:uppercase;letter-spacing:0.1em;">Subtotal</span>
+                <span id="cart-subtotal" style="color:#c9a96e;font-family:'Cormorant Garamond',serif;font-size:1.6rem;">$0.00</span>
+            </div>
+            <p style="color:rgba(245,240,232,0.25);font-size:0.7rem;margin-bottom:16px;">* Final pricing confirmed by our team. A care coordinator will contact you within 24 hours.</p>
+            <button onclick="proceedToOrder()" style="width:100%;background:linear-gradient(135deg,#c9a96e,#a07d3e);color:#111;font-weight:700;padding:16px;border-radius:12px;border:none;cursor:pointer;font-size:0.85rem;letter-spacing:0.12em;text-transform:uppercase;transition:all 0.2s;box-shadow:0 0 24px rgba(201,169,110,0.25);">
+                <i class="ph ph-heart" style="margin-right:8px;"></i>Begin Arrangement
+            </button>
+            <button onclick="clearCart()" style="width:100%;background:none;color:rgba(245,240,232,0.3);border:none;cursor:pointer;font-size:0.75rem;padding:10px;margin-top:4px;text-decoration:underline;">Clear all items</button>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════ -->
+    <!-- ORDER / CHECKOUT MODAL                    -->
+    <!-- ══════════════════════════════════════════ -->
+    <div id="order-modal" style="display:none;position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,0.85);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:20px;">
+        <div style="background:#0d0d0d;border:1px solid rgba(201,169,110,0.2);border-radius:20px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 80px rgba(0,0,0,0.9);position:relative;">
+            <!-- Step indicators -->
+            <div style="padding:24px 28px 0;display:flex;align-items:center;gap:0;margin-bottom:28px;">
+                <div id="step-ind-1" style="display:flex;align-items:center;gap:8px;flex:1;">
+                    <div style="width:28px;height:28px;border-radius:50%;background:#c9a96e;color:#111;font-size:0.75rem;font-weight:700;display:flex;align-items:center;justify-content:center;">1</div>
+                    <span style="font-size:0.75rem;color:#c9a96e;text-transform:uppercase;letter-spacing:0.08em;">Details</span>
+                </div>
+                <div style="flex:1;height:1px;background:#1e1e1e;margin:0 8px;"></div>
+                <div id="step-ind-2" style="display:flex;align-items:center;gap:8px;flex:1;">
+                    <div id="step2-circle" style="width:28px;height:28px;border-radius:50%;background:#1e1e1e;color:rgba(245,240,232,0.4);font-size:0.75rem;font-weight:700;display:flex;align-items:center;justify-content:center;border:1px solid #333;">2</div>
+                    <span id="step2-label" style="font-size:0.75rem;color:rgba(245,240,232,0.35);text-transform:uppercase;letter-spacing:0.08em;">Review</span>
+                </div>
+                <div style="flex:1;height:1px;background:#1e1e1e;margin:0 8px;"></div>
+                <div id="step-ind-3" style="display:flex;align-items:center;gap:8px;flex:1;">
+                    <div id="step3-circle" style="width:28px;height:28px;border-radius:50%;background:#1e1e1e;color:rgba(245,240,232,0.4);font-size:0.75rem;font-weight:700;display:flex;align-items:center;justify-content:center;border:1px solid #333;">3</div>
+                    <span id="step3-label" style="font-size:0.75rem;color:rgba(245,240,232,0.35);text-transform:uppercase;letter-spacing:0.08em;">Confirm</span>
+                </div>
+            </div>
+
+            <!-- Step 1: Contact Details -->
+            <div id="order-step-1" style="padding:0 28px 28px;">
+                <div style="display:flex;align-items:center;gap:3px;margin-bottom:4px;">
+                    <i class="ph ph-flower-lotus" style="color:#c9a96e;font-size:1.1rem;"></i>
+                    <span style="color:rgba(245,240,232,0.45);font-size:0.7rem;text-transform:uppercase;letter-spacing:0.15em;margin-left:6px;">Step 1 of 3</span>
+                </div>
+                <h2 style="font-family:'Cormorant Garamond',serif;font-size:1.8rem;color:#F5F0E8;margin-bottom:6px;">Your Information</h2>
+                <p style="color:rgba(245,240,232,0.4);font-size:0.85rem;margin-bottom:24px;line-height:1.6;">A care coordinator will reach out within 24 hours to confirm your arrangement.</p>
+                <div style="display:flex;flex-direction:column;gap:16px;">
+                    <div>
+                        <label style="display:block;font-size:0.7rem;color:rgba(245,240,232,0.5);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px;">Full Name *</label>
+                        <input id="order-name" type="text" placeholder="e.g. Jane Smith" style="width:100%;background:#161616;border:1px solid #2a2a2a;border-radius:10px;padding:13px 16px;color:#F5F0E8;font-size:0.9rem;outline:none;box-sizing:border-box;transition:border-color 0.2s;" onfocus="this.style.borderColor='#c9a96e'" onblur="this.style.borderColor='#2a2a2a'">
+                    </div>
+                    <div>
+                        <label style="display:block;font-size:0.7rem;color:rgba(245,240,232,0.5);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px;">Email Address *</label>
+                        <input id="order-email" type="email" placeholder="e.g. jane@email.com" style="width:100%;background:#161616;border:1px solid #2a2a2a;border-radius:10px;padding:13px 16px;color:#F5F0E8;font-size:0.9rem;outline:none;box-sizing:border-box;transition:border-color 0.2s;" onfocus="this.style.borderColor='#c9a96e'" onblur="this.style.borderColor='#2a2a2a'">
+                    </div>
+                    <div>
+                        <label style="display:block;font-size:0.7rem;color:rgba(245,240,232,0.5);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px;">Phone Number</label>
+                        <input id="order-phone" type="tel" placeholder="e.g. (201) 555-0100" style="width:100%;background:#161616;border:1px solid #2a2a2a;border-radius:10px;padding:13px 16px;color:#F5F0E8;font-size:0.9rem;outline:none;box-sizing:border-box;transition:border-color 0.2s;" onfocus="this.style.borderColor='#c9a96e'" onblur="this.style.borderColor='#2a2a2a'">
+                    </div>
+                    <div>
+                        <label style="display:block;font-size:0.7rem;color:rgba(245,240,232,0.5);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px;">Special Notes</label>
+                        <textarea id="order-notes" rows="3" placeholder="Any specific requests, religious preferences, or notes for our team..." style="width:100%;background:#161616;border:1px solid #2a2a2a;border-radius:10px;padding:13px 16px;color:#F5F0E8;font-size:0.9rem;outline:none;resize:none;box-sizing:border-box;transition:border-color 0.2s;font-family:inherit;" onfocus="this.style.borderColor='#c9a96e'" onblur="this.style.borderColor='#2a2a2a'"></textarea>
+                    </div>
+                </div>
+                <div style="display:flex;gap:12px;margin-top:24px;">
+                    <button onclick="closeOrder()" style="flex:1;background:none;border:1px solid #2a2a2a;color:rgba(245,240,232,0.5);padding:14px;border-radius:10px;cursor:pointer;font-size:0.85rem;transition:all 0.2s;" onmouseover="this.style.borderColor='#444'" onmouseout="this.style.borderColor='#2a2a2a'">Cancel</button>
+                    <button onclick="orderStep2()" style="flex:2;background:linear-gradient(135deg,#c9a96e,#a07d3e);color:#111;font-weight:700;padding:14px;border-radius:10px;border:none;cursor:pointer;font-size:0.85rem;letter-spacing:0.08em;text-transform:uppercase;">Continue <i class="ph ph-arrow-right"></i></button>
+                </div>
+            </div>
+
+            <!-- Step 2: Review Order -->
+            <div id="order-step-2" style="display:none;padding:0 28px 28px;">
+                <div style="display:flex;align-items:center;gap:3px;margin-bottom:4px;">
+                    <i class="ph ph-flower-lotus" style="color:#c9a96e;font-size:1.1rem;"></i>
+                    <span style="color:rgba(245,240,232,0.45);font-size:0.7rem;text-transform:uppercase;letter-spacing:0.15em;margin-left:6px;">Step 2 of 3</span>
+                </div>
+                <h2 style="font-family:'Cormorant Garamond',serif;font-size:1.8rem;color:#F5F0E8;margin-bottom:6px;">Review Your Order</h2>
+                <p style="color:rgba(245,240,232,0.4);font-size:0.85rem;margin-bottom:20px;">Please confirm the details below before we proceed.</p>
+                <div id="review-contact" style="background:#161616;border:1px solid #1e1e1e;border-radius:12px;padding:16px;margin-bottom:16px;">
+                    <p style="color:rgba(245,240,232,0.4);font-size:0.7rem;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:10px;">Contact Information</p>
+                    <p id="rv-name" style="color:#F5F0E8;font-size:0.95rem;margin-bottom:4px;"></p>
+                    <p id="rv-email" style="color:rgba(245,240,232,0.55);font-size:0.85rem;margin-bottom:4px;"></p>
+                    <p id="rv-phone" style="color:rgba(245,240,232,0.55);font-size:0.85rem;"></p>
+                </div>
+                <div id="review-items" style="background:#161616;border:1px solid #1e1e1e;border-radius:12px;padding:16px;margin-bottom:16px;">
+                    <p style="color:rgba(245,240,232,0.4);font-size:0.7rem;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:12px;">Selected Items</p>
+                    <div id="review-items-list" style="display:flex;flex-direction:column;gap:10px;"></div>
+                </div>
+                <div style="background:rgba(201,169,110,0.07);border:1px solid rgba(201,169,110,0.15);border-radius:12px;padding:16px;display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+                    <span style="color:rgba(245,240,232,0.6);font-size:0.85rem;text-transform:uppercase;letter-spacing:0.08em;">Estimated Total</span>
+                    <span id="rv-total" style="color:#c9a96e;font-family:'Cormorant Garamond',serif;font-size:2rem;"></span>
+                </div>
+                <div style="display:flex;gap:12px;">
+                    <button onclick="orderStep1()" style="flex:1;background:none;border:1px solid #2a2a2a;color:rgba(245,240,232,0.5);padding:14px;border-radius:10px;cursor:pointer;font-size:0.85rem;"><i class="ph ph-arrow-left"></i> Back</button>
+                    <button onclick="orderStep3()" style="flex:2;background:linear-gradient(135deg,#c9a96e,#a07d3e);color:#111;font-weight:700;padding:14px;border-radius:10px;border:none;cursor:pointer;font-size:0.85rem;letter-spacing:0.08em;text-transform:uppercase;">Confirm Arrangement <i class="ph ph-heart"></i></button>
+                </div>
+            </div>
+
+            <!-- Step 3: Animated Confirmation -->
+            <div id="order-step-3" style="display:none;padding:0;overflow:hidden;border-radius:0 0 20px 20px;">
+                <!-- Canvas for particle burst -->
+                <canvas id="confirm-canvas" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;border-radius:20px;"></canvas>
+                <div style="position:relative;z-index:1;padding:40px 28px 32px;text-align:center;">
+                    <!-- Animated seal -->
+                    <div id="confirm-seal" style="width:100px;height:100px;border-radius:50%;margin:0 auto 24px;position:relative;transform:scale(0);transition:transform 0.6s cubic-bezier(0.175,0.885,0.32,1.275);">
+                        <div style="position:absolute;inset:0;border-radius:50%;background:conic-gradient(from 0deg, #c9a96e, #f5d060, #a07d3e, #ffe08a, #c9a96e);animation:spinSeal 8s linear infinite;"></div>
+                        <div style="position:absolute;inset:4px;border-radius:50%;background:#0d0d0d;display:flex;align-items:center;justify-content:center;flex-direction:column;">
+                            <i class="ph ph-check-circle" style="color:#c9a96e;font-size:2.4rem;line-height:1;"></i>
+                        </div>
+                    </div>
+                    <!-- Status text with typewriter -->
+                    <div id="confirm-status-line" style="color:rgba(201,169,110,0.7);font-size:0.7rem;text-transform:uppercase;letter-spacing:0.25em;margin-bottom:12px;min-height:1em;"></div>
+                    <h2 id="confirm-heading" style="font-family:'Cormorant Garamond',serif;font-size:2.2rem;color:#F5F0E8;margin-bottom:10px;opacity:0;transform:translateY(12px);transition:all 0.5s ease 0.4s;">Arrangement Received</h2>
+                    <p id="confirm-sub" style="color:rgba(245,240,232,0.45);font-size:0.88rem;line-height:1.8;margin-bottom:0;opacity:0;transition:opacity 0.5s ease 0.6s;">Our care team will contact <span id="confirm-email" style="color:#c9a96e;font-style:italic;"></span><br>within 24 hours to confirm your arrangement.</p>
+
+                    <!-- Divider -->
+                    <div id="confirm-divider" style="width:0;height:1px;background:linear-gradient(90deg,transparent,rgba(201,169,110,0.4),transparent);margin:24px auto;transition:width 0.8s ease 0.8s;"></div>
+
+                    <!-- Ref + details -->
+                    <div id="confirm-details" style="opacity:0;transition:opacity 0.5s ease 1s;">
+                        <div style="display:inline-flex;align-items:center;gap:10px;background:#161616;border:1px solid #2a2a2a;border-radius:10px;padding:10px 20px;margin-bottom:20px;">
+                            <i class="ph ph-hash" style="color:rgba(201,169,110,0.5);"></i>
+                            <span style="color:rgba(245,240,232,0.4);font-size:0.75rem;text-transform:uppercase;letter-spacing:0.1em;">Reference</span>
+                            <span id="confirm-ref" style="color:#F5F0E8;font-family:monospace;font-size:0.9rem;letter-spacing:0.12em;"></span>
+                        </div>
+
+                        <!-- Timeline steps -->
+                        <div style="text-align:left;background:#111;border:1px solid #1e1e1e;border-radius:14px;padding:20px;margin-bottom:20px;">
+                            <p style="color:rgba(245,240,232,0.35);font-size:0.68rem;text-transform:uppercase;letter-spacing:0.12em;margin-bottom:16px;">What Happens Next</p>
+                            <div class="confirm-timeline-item" style="display:flex;gap:14px;align-items:flex-start;margin-bottom:16px;opacity:0;transform:translateX(-10px);transition:all 0.4s ease;">
+                                <div style="min-width:30px;height:30px;border-radius:50%;background:rgba(201,169,110,0.12);border:1px solid rgba(201,169,110,0.3);display:flex;align-items:center;justify-content:center;margin-top:2px;"><i class="ph ph-phone" style="color:#c9a96e;font-size:0.85rem;"></i></div>
+                                <div><p style="color:#F5F0E8;font-size:0.85rem;margin-bottom:3px;">Care Coordinator Contact</p><p style="color:rgba(245,240,232,0.35);font-size:0.75rem;line-height:1.5;">We'll call or email you within 24 hours to begin the arrangement process.</p></div>
+                            </div>
+                            <div class="confirm-timeline-item" style="display:flex;gap:14px;align-items:flex-start;margin-bottom:16px;opacity:0;transform:translateX(-10px);transition:all 0.4s ease 0.1s;">
+                                <div style="min-width:30px;height:30px;border-radius:50%;background:rgba(201,169,110,0.12);border:1px solid rgba(201,169,110,0.3);display:flex;align-items:center;justify-content:center;margin-top:2px;"><i class="ph ph-clipboard-text" style="color:#c9a96e;font-size:0.85rem;"></i></div>
+                                <div><p style="color:#F5F0E8;font-size:0.85rem;margin-bottom:3px;">Arrangement Review</p><p style="color:rgba(245,240,232,0.35);font-size:0.75rem;line-height:1.5;">Your selections are reviewed and a formal quote is prepared for your approval.</p></div>
+                            </div>
+                            <div class="confirm-timeline-item" style="display:flex;gap:14px;align-items:flex-start;opacity:0;transform:translateX(-10px);transition:all 0.4s ease 0.2s;">
+                                <div style="min-width:30px;height:30px;border-radius:50%;background:rgba(201,169,110,0.12);border:1px solid rgba(201,169,110,0.3);display:flex;align-items:center;justify-content:center;margin-top:2px;"><i class="ph ph-flower-lotus" style="color:#c9a96e;font-size:0.85rem;"></i></div>
+                                <div><p style="color:#F5F0E8;font-size:0.85rem;margin-bottom:3px;">Services Begin</p><p style="color:rgba(245,240,232,0.35);font-size:0.75rem;line-height:1.5;">Once confirmed, our team handles every detail with care and dignity.</p></div>
+                            </div>
+                        </div>
+
+                        <!-- Phone CTA -->
+                        <div style="background:rgba(201,169,110,0.06);border:1px solid rgba(201,169,110,0.18);border-radius:12px;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+                            <div style="text-align:left;">
+                                <p style="color:rgba(245,240,232,0.35);font-size:0.68rem;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px;">Need Immediate Help?</p>
+                                <a href="tel:+18005550199" style="color:#c9a96e;font-family:'Cormorant Garamond',serif;font-size:1.3rem;text-decoration:none;">1-800-555-0199</a>
+                            </div>
+                            <span style="background:rgba(201,169,110,0.15);border:1px solid rgba(201,169,110,0.2);color:#c9a96e;font-size:0.68rem;text-transform:uppercase;letter-spacing:0.1em;padding:6px 12px;border-radius:20px;">24/7</span>
+                        </div>
+
+                        <button onclick="closeOrder();clearCart();" style="width:100%;background:linear-gradient(135deg,#c9a96e,#a07d3e);color:#111;font-weight:700;padding:16px;border-radius:12px;border:none;cursor:pointer;font-size:0.85rem;letter-spacing:0.12em;text-transform:uppercase;box-shadow:0 0 30px rgba(201,169,110,0.2);transition:box-shadow 0.3s;" onmouseover="this.style.boxShadow='0 0 40px rgba(201,169,110,0.4)'" onmouseout="this.style.boxShadow='0 0 30px rgba(201,169,110,0.2)'">
+                            <i class="ph ph-arrow-left" style="margin-right:8px;"></i>Return to Site
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Close X button -->
+            <button onclick="closeOrder()" style="position:absolute;top:18px;right:20px;background:none;border:none;color:rgba(245,240,232,0.3);cursor:pointer;font-size:1.2rem;padding:4px;"><i class="ph ph-x"></i></button>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════ -->
+    <!-- CART + ORDER JAVASCRIPT                   -->
+    <!-- ══════════════════════════════════════════ -->
+    <script>
+    // ── Cart State ──
+    let cart = [];
+
+    function getCustomizerSummary() {
+        const woodSel  = document.getElementById('wood-select');
+        const sizeSel  = document.getElementById('size-select');
+        const desSel   = document.getElementById('design-select');
+        const plateSel = document.getElementById('plate-select');
+        const engInput = document.getElementById('engraving-text');
+        const price    = parseInt(document.getElementById('total-price').textContent.replace(/[$,]/g,'').replace('.00','')) || 0;
+
+        const woodLabel  = woodSel?.options[woodSel.selectedIndex]?.text   || 'Casket';
+        const sizeLabel  = sizeSel?.options[sizeSel.selectedIndex]?.text   || 'Standard';
+        const desLabel   = desSel?.options[desSel.selectedIndex]?.text     || '';
+        const plateLabel = plateSel?.options[plateSel.selectedIndex]?.text || '';
+        const engText    = engInput?.value?.trim() || '';
+
+        return {
+            id: Date.now(),
+            name: woodLabel.split('(')[0].trim(),
+            size: sizeLabel.split('(')[0].trim(),
+            hardware: desLabel.split('(')[0].trim(),
+            plate: plateLabel.split('(')[0].trim(),
+            engraving: engText,
+            price,
+            details: [
+                { label: 'Wood', value: woodLabel },
+                { label: 'Size', value: sizeLabel },
+                { label: 'Hardware', value: desLabel },
+                { label: 'Name Plate', value: plateLabel },
+                engText ? { label: 'Engraving', value: `"${engText}"` } : null
+            ].filter(Boolean)
+        };
+    }
+
+    function addToCart() {
+        const item = getCustomizerSummary();
+        cart.push(item);
+        renderCart();
+        openCart();
+        // Brief pulse on the button
+        const btn = event.currentTarget;
+        if (btn) {
+            btn.textContent = '✓ Added!';
+            btn.style.background = 'linear-gradient(135deg,#5a8a4a,#3a6a2a)';
+            setTimeout(() => {
+                btn.innerHTML = '<i class="ph ph-shopping-cart-simple" style="font-size:1.1rem;margin-right:6px;"></i> Add to Cart';
+                btn.style.background = '';
+            }, 1500);
+        }
+    }
+
+    function renderCart() {
+        const container = document.getElementById('cart-items');
+        const empty     = document.getElementById('cart-empty');
+        const footer    = document.getElementById('cart-footer');
+        const badge     = document.getElementById('cart-count-badge');
+        const navBadge  = document.getElementById('nav-cart-count');
+        const subtotalEl = document.getElementById('cart-subtotal');
+
+        if (cart.length === 0) {
+            empty.style.display = 'block';
+            footer.style.display = 'none';
+            badge.style.display = 'none';
+            navBadge.classList.add('hidden');
+            // Remove item cards
+            container.querySelectorAll('.cart-item-card').forEach(e => e.remove());
+            return;
+        }
+
+        container.querySelectorAll('.cart-item-card').forEach(e => e.remove());
+        empty.style.display = 'none';
+        footer.style.display = 'block';
+        badge.style.display = 'inline-block';
+        badge.textContent = cart.length;
+        navBadge.classList.remove('hidden');
+        navBadge.textContent = cart.length;
+
+        let total = 0;
+        cart.forEach((item, idx) => {
+            total += item.price;
+            const card = document.createElement('div');
+            card.className = 'cart-item-card';
+            card.style.cssText = 'background:#161616;border:1px solid #1e1e1e;border-radius:14px;padding:16px;position:relative;transition:border-color 0.2s;';
+            card.innerHTML = `
+                <button onclick="removeFromCart(${idx})" style="position:absolute;top:12px;right:12px;background:rgba(255,80,80,0.1);border:1px solid rgba(255,80,80,0.2);color:rgba(255,100,100,0.7);width:26px;height:26px;border-radius:50%;cursor:pointer;font-size:0.8rem;display:flex;align-items:center;justify-content:center;">✕</button>
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+                    <div style="width:36px;height:36px;border-radius:8px;background:rgba(201,169,110,0.1);border:1px solid rgba(201,169,110,0.2);display:flex;align-items:center;justify-content:center;">
+                        <i class="ph ph-flower-lotus" style="color:#c9a96e;font-size:1rem;"></i>
+                    </div>
+                    <div>
+                        <p style="color:#F5F0E8;font-family:'Cormorant Garamond',serif;font-size:1.1rem;line-height:1.2;">${item.name}</p>
+                        <p style="color:rgba(245,240,232,0.35);font-size:0.72rem;text-transform:uppercase;letter-spacing:0.08em;">${item.size}</p>
+                    </div>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:5px;padding-top:10px;border-top:1px solid #1e1e1e;">
+                    ${item.details.map(d => `
+                        <div style="display:flex;justify-content:space-between;align-items:center;">
+                            <span style="color:rgba(245,240,232,0.35);font-size:0.75rem;">${d.label}</span>
+                            <span style="color:rgba(245,240,232,0.65);font-size:0.78rem;text-align:right;max-width:65%;">${d.value}</span>
+                        </div>`).join('')}
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;padding-top:8px;border-top:1px solid #1e1e1e;">
+                        <span style="color:rgba(245,240,232,0.35);font-size:0.75rem;text-transform:uppercase;letter-spacing:0.08em;">Est. Price</span>
+                        <span style="color:#c9a96e;font-family:'Cormorant Garamond',serif;font-size:1.3rem;">$${item.price.toLocaleString()}</span>
+                    </div>
+                </div>`;
+            container.insertBefore(card, empty);
+        });
+
+        subtotalEl.textContent = '$' + total.toLocaleString() + '.00';
+    }
+
+    function removeFromCart(idx) {
+        cart.splice(idx, 1);
+        renderCart();
+    }
+
+    function clearCart() {
+        cart = [];
+        renderCart();
+    }
+
+    function openCart() {
+        document.getElementById('cart-overlay').style.display = 'block';
+        document.getElementById('cart-drawer').style.transform = 'translateX(0)';
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeCart() {
+        document.getElementById('cart-overlay').style.display = 'none';
+        document.getElementById('cart-drawer').style.transform = 'translateX(100%)';
+        document.body.style.overflow = '';
+    }
+
+    // ── Order Flow ──
+    function proceedToOrder() {
+        if (cart.length === 0) return;
+        closeCart();
+        const modal = document.getElementById('order-modal');
+        modal.style.display = 'flex';
+        orderStep1();
+    }
+
+    function closeOrder() {
+        document.getElementById('order-modal').style.display = 'none';
+        document.body.style.overflow = '';
+    }
+
+    function orderStep1() {
+        document.getElementById('order-step-1').style.display = 'block';
+        document.getElementById('order-step-2').style.display = 'none';
+        document.getElementById('order-step-3').style.display = 'none';
+    }
+
+    function orderStep2() {
+        const name  = document.getElementById('order-name').value.trim();
+        const email = document.getElementById('order-email').value.trim();
+        if (!name || !email) { alert('Please fill in your name and email to continue.'); return; }
+        // Populate review
+        document.getElementById('rv-name').textContent  = name;
+        document.getElementById('rv-email').textContent = email;
+        document.getElementById('rv-phone').textContent = document.getElementById('order-phone').value || '—';
+        const list = document.getElementById('review-items-list');
+        list.innerHTML = '';
+        let total = 0;
+        cart.forEach(item => {
+            total += item.price;
+            const row = document.createElement('div');
+            row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #1e1e1e;';
+            row.innerHTML = `<div>
+                <p style="color:#F5F0E8;font-size:0.95rem;font-family:'Cormorant Garamond',serif;">${item.name}</p>
+                <p style="color:rgba(245,240,232,0.35);font-size:0.75rem;">${item.size} · ${item.plate}${item.engraving ? ` · "${item.engraving}"` : ''}</p>
+            </div><span style="color:#c9a96e;font-family:'Cormorant Garamond',serif;font-size:1.2rem;white-space:nowrap;">$${item.price.toLocaleString()}</span>`;
+            list.appendChild(row);
+        });
+        document.getElementById('rv-total').textContent = '$' + total.toLocaleString() + '.00';
+        // Activate step 2 indicator
+        document.getElementById('step2-circle').style.background = '#c9a96e';
+        document.getElementById('step2-circle').style.color = '#111';
+        document.getElementById('step2-circle').style.border = 'none';
+        document.getElementById('step2-label').style.color = '#c9a96e';
+        document.getElementById('order-step-1').style.display = 'none';
+        document.getElementById('order-step-2').style.display = 'block';
+        document.getElementById('order-step-3').style.display = 'none';
+    }
+
+    function orderStep3() {
+        const ref = 'LP-' + Math.random().toString(36).substr(2,5).toUpperCase() + '-' + Date.now().toString().slice(-4);
+        document.getElementById('confirm-email').textContent = document.getElementById('order-email').value;
+        document.getElementById('confirm-ref').textContent = ref;
+        // Activate step 3 indicator
+        document.getElementById('step3-circle').style.background = '#c9a96e';
+        document.getElementById('step3-circle').style.color = '#111';
+        document.getElementById('step3-circle').style.border = 'none';
+        document.getElementById('step3-label').style.color = '#c9a96e';
+        document.getElementById('order-step-1').style.display = 'none';
+        document.getElementById('order-step-2').style.display = 'none';
+        document.getElementById('order-step-3').style.display = 'block';
+
+        // ── PARTICLE CANVAS BURST ──
+        const canvas = document.getElementById('confirm-canvas');
+        const modal  = document.querySelector('#order-step-3').parentElement;
+        canvas.width  = modal.offsetWidth  || 560;
+        canvas.height = modal.offsetHeight || 700;
+        const ctx2 = canvas.getContext('2d');
+        const particles = [];
+        const goldPalette = ['#c9a96e','#f5d060','#ffe08a','#a07d3e','#fff0b3','#d4af37'];
+        for (let i = 0; i < 80; i++) {
+            particles.push({
+                x: canvas.width / 2 + (Math.random()-0.5)*60,
+                y: canvas.height * 0.28,
+                vx: (Math.random()-0.5) * 7,
+                vy: -(Math.random() * 8 + 3),
+                size: Math.random() * 5 + 2,
+                color: goldPalette[Math.floor(Math.random()*goldPalette.length)],
+                life: 1, decay: Math.random()*0.015+0.008,
+                shape: Math.random() > 0.5 ? 'circle' : 'rect',
+                rot: Math.random()*Math.PI*2, rotV: (Math.random()-0.5)*0.2
+            });
+        }
+        function animParticles() {
+            ctx2.clearRect(0, 0, canvas.width, canvas.height);
+            let alive = false;
+            particles.forEach(p => {
+                if (p.life <= 0) return;
+                alive = true;
+                p.x += p.vx; p.y += p.vy; p.vy += 0.18;
+                p.vx *= 0.99; p.rot += p.rotV;
+                p.life -= p.decay;
+                ctx2.globalAlpha = Math.max(0, p.life);
+                ctx2.fillStyle = p.color;
+                ctx2.save(); ctx2.translate(p.x, p.y); ctx2.rotate(p.rot);
+                if (p.shape === 'circle') { ctx2.beginPath(); ctx2.arc(0,0,p.size,0,Math.PI*2); ctx2.fill(); }
+                else { ctx2.fillRect(-p.size/2, -p.size/2, p.size, p.size*1.6); }
+                ctx2.restore();
+            });
+            ctx2.globalAlpha = 1;
+            if (alive) requestAnimationFrame(animParticles);
+        }
+        animParticles();
+
+        // ── TYPEWRITER STATUS LINE ──
+        const statusMessages = ['Processing arrangement...', 'Verifying selections...', 'Securing reference...', 'Arrangement confirmed ✦'];
+        const statusEl = document.getElementById('confirm-status-line');
+        let sIdx = 0;
+        function typeStatus(msg, cb) {
+            statusEl.textContent = '';
+            let i = 0;
+            const t = setInterval(() => {
+                statusEl.textContent += msg[i++];
+                if (i >= msg.length) { clearInterval(t); setTimeout(cb || (()=>{}), 400); }
+            }, 38);
+        }
+        function runStatusSeq(idx) {
+            if (idx >= statusMessages.length - 1) { typeStatus(statusMessages[idx]); return; }
+            typeStatus(statusMessages[idx], () => setTimeout(() => runStatusSeq(idx+1), 300));
+        }
+        runStatusSeq(0);
+
+        // ── SEAL POP IN ──
+        setTimeout(() => {
+            const seal = document.getElementById('confirm-seal');
+            seal.style.transform = 'scale(1)';
+            seal.style.animation = 'pulseGold 2.5s ease-in-out 0.8s infinite';
+        }, 200);
+
+        // ── HEADING + SUB FADE IN ──
+        setTimeout(() => {
+            document.getElementById('confirm-heading').style.opacity = '1';
+            document.getElementById('confirm-heading').style.transform = 'translateY(0)';
+            document.getElementById('confirm-sub').style.opacity = '1';
+        }, 600);
+
+        // ── DIVIDER EXPAND ──
+        setTimeout(() => { document.getElementById('confirm-divider').style.width = '80%'; }, 800);
+
+        // ── DETAILS FADE + TIMELINE STAGGER ──
+        setTimeout(() => {
+            document.getElementById('confirm-details').style.opacity = '1';
+            const items = document.querySelectorAll('.confirm-timeline-item');
+            items.forEach((el, i) => {
+                setTimeout(() => {
+                    el.style.opacity = '1';
+                    el.style.transform = 'translateX(0)';
+                }, i * 150);
+            });
+        }, 1100);
+    }
+
+    // Close modal on overlay click
+    document.getElementById('order-modal').addEventListener('click', function(e) {
+        if (e.target === this) closeOrder();
+    });
+    </script>
+
+    <!-- AI Chatbot Button -->
+    <div id="chatbot-window" class="glass-panel border border-brand-accent/20">
+        <div class="p-4 border-b border-brand-gray flex items-center justify-between bg-brand-charcoal rounded-t-2xl">
+            <div class="flex items-center gap-2">
+                <i class="ph ph-flower-lotus text-brand-accent text-lg"></i>
+                <div>
+                    <p class="font-serif text-sm text-brand-white font-semibold">Last Piece Advisor</p>
+                    <p class="text-xs text-brand-accent">AI-Powered · Here to Help</p>
+                </div>
+            </div>
+            <button onclick="toggleChat()" class="text-brand-white/40 hover:text-brand-white text-lg"><i class="ph ph-x"></i></button>
+        </div>
+        <div id="chat-messages">
+            <div class="chat-msg-ai">Hello, I'm the Last Piece advisor. I'm here to help you choose the right service or casket configuration for your loved one. What can I help you with today?</div>
+        </div>
+        <div class="p-3 border-t border-brand-gray flex gap-2 bg-brand-charcoal rounded-b-2xl">
+            <input id="chat-input" type="text" placeholder="Ask me anything..." class="flex-1 bg-brand-dark border border-brand-gray rounded-lg px-3 py-2 text-brand-white text-sm focus:outline-none focus:border-brand-accent transition-colors" onkeydown="if(event.key==='Enter') sendChat()">
+            <button onclick="sendChat()" class="bg-brand-accent text-black w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 hover:opacity-90 transition-opacity">
+                <i class="ph ph-paper-plane-right text-sm"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- INTRO ANIMATION OVERLAY                               -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <div id="intro-overlay" style="
+        position:fixed;inset:0;z-index:9999;
+        background:#08080f;
+        display:flex;flex-direction:column;
+        align-items:center;justify-content:center;
+        font-family:'Jost',sans-serif;
+    ">
+        <button onclick="closeIntro()" style="
+            position:absolute;top:18px;right:22px;
+            background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.14);
+            color:rgba(255,255,255,0.45);font-size:11px;letter-spacing:2px;
+            text-transform:uppercase;padding:7px 18px;border-radius:20px;
+            cursor:pointer;font-family:'Jost',sans-serif;transition:all .2s;
+        " onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,0.45)'">Skip ↗</button>
+
+        <div id="anim-scene-label" style="
+            position:absolute;top:22px;left:50%;transform:translateX(-50%);
+            color:rgba(201,169,110,0.65);font-size:10px;letter-spacing:3px;
+            text-transform:uppercase;white-space:nowrap;opacity:0;transition:opacity .4s;
+        "></div>
+
+        <canvas id="intro-canvas" width="800" height="460" style="
+            border-radius:14px;
+            box-shadow:0 0 100px rgba(0,0,0,0.9),0 0 0 1px rgba(255,255,255,0.07);
+            max-width:95vw;max-height:55vh;
+        "></canvas>
+
+        <div id="anim-caption" style="
+            margin-top:20px;min-height:48px;max-width:600px;
+            text-align:center;font-size:14px;line-height:1.7;
+            color:rgba(245,240,232,0.8);padding:0 24px;
+        "></div>
+
+        <div id="anim-dots" style="display:flex;gap:8px;margin-top:14px;"></div>
+    </div>
+
+    <style>
+        #intro-overlay.closing{animation:_ioFade .7s ease-in forwards;}
+        @keyframes _ioFade{to{opacity:0;pointer-events:none;}}
+    </style>
+
+    <script>
+    // ═══════════════════════════════════════════════════════════
+    //  LAST PIECE — UNCLE GERALD ANIMATION
+    //  Fully self-contained. Scenes defined inside runAnimation()
+    //  so re-running is safe (no duplicate push bug).
+    // ═══════════════════════════════════════════════════════════
+
+    let _animRaf = null;
+
+    function closeIntro() {
+        if(_animRaf){ cancelAnimationFrame(_animRaf); _animRaf=null; }
+        const ov = document.getElementById('intro-overlay');
+        ov.classList.add('closing');
+        setTimeout(()=>{ ov.style.display='none'; ov.classList.remove('closing'); ov.style.opacity=''; }, 750);
+    }
+
+    function playIntroAnimation() {
+        if(_animRaf){ cancelAnimationFrame(_animRaf); _animRaf=null; }
+        const ov = document.getElementById('intro-overlay');
+        ov.style.display='flex'; ov.style.opacity='1';
+        ov.classList.remove('closing');
+        setTimeout(runAnimation, 40);
+    }
+
+    // ── UTILITIES ───────────────────────────────────────────────
+    function ease(t){ return t<0.5?2*t*t:1-Math.pow(-2*t+2,2)/2; }
+    function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
+    function fadeIn(p,start,len){ return clamp((p-start)/len,0,1); }
+
+    function roundRect(ctx,x,y,w,h,r){
+        ctx.beginPath();ctx.roundRect(x,y,w,h,r);
+    }
+
+    // ── BACKGROUND RENDERER ─────────────────────────────────────
+    function drawBG(ctx,W,H,type){
+        ctx.save();
+        if(type==='day'){
+            const sky=ctx.createLinearGradient(0,0,0,H*0.7);
+            sky.addColorStop(0,'#5bb8f5');sky.addColorStop(1,'#c8e8fa');
+            ctx.fillStyle=sky;ctx.fillRect(0,0,W,H*0.7);
+            // Clouds
+            [[W*0.15,H*0.1,70],[W*0.55,H*0.07,50],[W*0.78,H*0.14,40]].forEach(([cx,cy,cr])=>{
+                ctx.fillStyle='rgba(255,255,255,0.85)';
+                [-cr*0.5,0,cr*0.5].forEach(dx=>{
+                    ctx.beginPath();ctx.arc(cx+dx,cy,cr*0.55,0,Math.PI*2);ctx.fill();
+                });
+            });
+            // Sun
+            const sg=ctx.createRadialGradient(W*0.88,H*0.08,0,W*0.88,H*0.08,60);
+            sg.addColorStop(0,'#fff9b0');sg.addColorStop(0.5,'#ffd700');sg.addColorStop(1,'rgba(255,215,0,0)');
+            ctx.fillStyle=sg;ctx.beginPath();ctx.arc(W*0.88,H*0.08,60,0,Math.PI*2);ctx.fill();
+            // Ground
+            const gr=ctx.createLinearGradient(0,H*0.7,0,H);
+            gr.addColorStop(0,'#6abf40');gr.addColorStop(1,'#3d8520');
+            ctx.fillStyle=gr;ctx.fillRect(0,H*0.7,W,H*0.3);
+            // Ground texture lines
+            ctx.strokeStyle='rgba(0,0,0,0.05)';ctx.lineWidth=1;
+            for(let i=0;i<6;i++){
+                ctx.beginPath();ctx.moveTo(0,H*0.7+i*H*0.05);ctx.lineTo(W,H*0.73+i*H*0.05);ctx.stroke();
+            }
+        } else if(type==='house'){
+            // Living room
+            const wall=ctx.createLinearGradient(0,0,0,H*0.78);
+            wall.addColorStop(0,'#f2e4d0');wall.addColorStop(1,'#e8d5b8');
+            ctx.fillStyle=wall;ctx.fillRect(0,0,W,H*0.78);
+            // Wainscoting
+            ctx.fillStyle='#d4b896';ctx.fillRect(0,H*0.6,W,H*0.18);
+            ctx.strokeStyle='#c4a882';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(0,H*0.6);ctx.lineTo(W,H*0.6);ctx.stroke();
+            // Floor
+            const fl=ctx.createLinearGradient(0,H*0.78,0,H);
+            fl.addColorStop(0,'#c8945a');fl.addColorStop(1,'#a8743a');
+            ctx.fillStyle=fl;ctx.fillRect(0,H*0.78,W,H*0.22);
+            // Floor planks
+            ctx.strokeStyle='rgba(0,0,0,0.08)';ctx.lineWidth=1;
+            for(let i=0;i<8;i++) { ctx.beginPath();ctx.moveTo(i*W/7,H*0.78);ctx.lineTo(i*W/6,H);ctx.stroke(); }
+            // Picture on wall
+            ctx.fillStyle='#8B6914';ctx.fillRect(W*0.7,H*0.15,W*0.18,H*0.22);
+            ctx.fillStyle='#aaa';ctx.fillRect(W*0.72,H*0.17,W*0.14,H*0.18);
+            ctx.fillStyle='#7a9';ctx.fillRect(W*0.72,H*0.17,W*0.14,H*0.18);
+            ctx.fillStyle='rgba(0,0,0,0.15)';ctx.font='9px serif';ctx.textAlign='center';
+            ctx.fillText('GERALD 1972',W*0.79,H*0.395);
+        }
+        ctx.restore();
+    }
+
+    // ── STICK FIGURE — proper 2-segment limbs for realistic motion ──
+    // x,y = hip position (centre of figure)
+    // sc  = scale (1 = normal)
+    // Limb angles are from vertical, in radians. Positive = right/forward.
+    function fig(ctx, x, y, sc, o={}){
+        const {
+            expr    = 'smile',
+            col     = '#1a3a8a',
+            hat     = false,
+            glow    = false,
+            shakeX  = 0,
+            lean    = 0,        // whole-body rotation
+            // Upper/lower leg angles (from vertical). walk() helper sets these.
+            thighL  = 0.22,  thighR  = -0.22,
+            shinL   = 0.15,  shinR   = -0.15,
+            // Upper/lower arm angles (from vertical downward)
+            uArmL   = -0.5,  uArmR   = 0.5,
+            lArmL   = 0.3,   lArmR   = -0.3,
+        } = o;
+
+        const S    = sc;
+        const THIGH = 28*S, SHIN = 26*S;   // leg segments
+        const UARM  = 22*S, LARM = 20*S;   // arm segments
+        const TORSO = 38*S, HEAD = 13*S;
+        const HIP   = 0,    SHOULDER = -TORSO, NECK_Y = SHOULDER - 4*S;
+        const LW    = Math.max(1.8, S*3.2);
+
+        ctx.save();
+        ctx.translate(x + shakeX, y);
+        ctx.rotate(lean);
+
+        // Electric glow halo
+        if(glow){
+            const rg = ctx.createRadialGradient(0, SHOULDER*0.5, 0, 0, SHOULDER*0.5, 80*S);
+            rg.addColorStop(0,'rgba(200,255,100,0.6)');
+            rg.addColorStop(0.5,'rgba(255,220,0,0.25)');
+            rg.addColorStop(1,'rgba(255,200,0,0)');
+            ctx.fillStyle=rg; ctx.beginPath(); ctx.arc(0,SHOULDER*0.5,80*S,0,Math.PI*2); ctx.fill();
+        }
+
+        ctx.lineCap='round'; ctx.lineJoin='round';
+
+        // ── Helper: draw a 2-segment limb ──
+        // ox,oy = origin; a1 = upper angle from straight-down; a2 = lower angle from upper dir
+        function limb(ox, oy, seg1, a1, seg2, a2){
+            const kx = ox + Math.sin(a1)*seg1;
+            const ky = oy + Math.cos(a1)*seg1;
+            const ex = kx + Math.sin(a1+a2)*seg2;
+            const ey = ky + Math.cos(a1+a2)*seg2;
+            ctx.strokeStyle=col; ctx.lineWidth=LW;
+            ctx.beginPath(); ctx.moveTo(ox,oy); ctx.lineTo(kx,ky); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(kx,ky); ctx.lineTo(ex,ey); ctx.stroke();
+            // knee dot
+            ctx.fillStyle=col;
+            ctx.beginPath(); ctx.arc(kx,ky,LW*0.55,0,Math.PI*2); ctx.fill();
+        }
+
+        // Legs (origin = hip)
+        limb(0, HIP, THIGH, thighL, SHIN, shinL - thighL);
+        limb(0, HIP, THIGH, thighR, SHIN, shinR - thighR);
+
+        // Torso
+        ctx.strokeStyle=col; ctx.lineWidth=LW;
+        ctx.beginPath(); ctx.moveTo(0, HIP); ctx.lineTo(0, SHOULDER); ctx.stroke();
+
+        // Arms (origin = shoulder)
+        limb(0, SHOULDER, UARM, uArmL, LARM, lArmL - uArmL);
+        limb(0, SHOULDER, UARM, uArmR, LARM, lArmR - uArmR);
+
+        // Neck
+        ctx.beginPath(); ctx.moveTo(0,SHOULDER); ctx.lineTo(0,NECK_Y); ctx.stroke();
+
+        // Head
+        const HY = NECK_Y - HEAD;
+        ctx.beginPath(); ctx.arc(0, HY, HEAD, 0, Math.PI*2);
+        ctx.fillStyle='#FFD8A8'; ctx.fill();
+        ctx.strokeStyle=col; ctx.lineWidth=LW*0.65; ctx.stroke();
+
+        // Face
+        const fw=HEAD*0.28, fey=HY-HEAD*0.2, fex=HEAD*0.42;
+        ctx.strokeStyle='#333'; ctx.fillStyle='#333';
+        ctx.lineWidth = Math.max(1, S*1.6);
+
+        if(expr==='smile'){
+            ctx.beginPath();ctx.arc(-fex,fey,fw,0,Math.PI*2);ctx.fill();
+            ctx.beginPath();ctx.arc(fex,fey,fw,0,Math.PI*2);ctx.fill();
+            ctx.beginPath();ctx.arc(0,HY+HEAD*0.2,HEAD*0.42,0.2,Math.PI-0.2);ctx.stroke();
+        } else if(expr==='shocked'){
+            // Raised wide eyes
+            ctx.lineWidth=Math.max(1,S*1.4);
+            ctx.beginPath();ctx.arc(-fex,fey-3*S,fw*1.7,0,Math.PI*2);ctx.stroke();
+            ctx.beginPath();ctx.arc(fex,fey-3*S,fw*1.7,0,Math.PI*2);ctx.stroke();
+            ctx.fillStyle='#000';
+            ctx.beginPath();ctx.arc(-fex,fey-3*S,fw*0.8,0,Math.PI*2);ctx.fill();
+            ctx.beginPath();ctx.arc(fex,fey-3*S,fw*0.8,0,Math.PI*2);ctx.fill();
+            // O-mouth
+            ctx.beginPath();ctx.arc(0,HY+HEAD*0.28,HEAD*0.3,0,Math.PI*2);
+            ctx.fillStyle='#111';ctx.fill();ctx.strokeStyle='#333';ctx.stroke();
+        } else if(expr==='dead'){
+            [[-fex,fey],[fex,fey]].forEach(([ex2,ey2])=>{
+                ctx.beginPath();ctx.moveTo(ex2-fw,ey2-fw);ctx.lineTo(ex2+fw,ey2+fw);ctx.stroke();
+                ctx.beginPath();ctx.moveTo(ex2+fw,ey2-fw);ctx.lineTo(ex2-fw,ey2+fw);ctx.stroke();
+            });
+            ctx.beginPath();ctx.moveTo(-HEAD*0.4,HY+HEAD*0.3);
+            ctx.quadraticCurveTo(0,HY+HEAD*0.18,HEAD*0.4,HY+HEAD*0.3);ctx.stroke();
+        } else if(expr==='worry'){
+            ctx.beginPath();ctx.arc(-fex,fey,fw,0,Math.PI*2);ctx.fill();
+            ctx.beginPath();ctx.arc(fex,fey,fw,0,Math.PI*2);ctx.fill();
+            // Worried brow lines
+            ctx.lineWidth=Math.max(1,S*1.4);
+            ctx.beginPath();ctx.moveTo(-fex-fw,fey-fw*1.5);ctx.lineTo(-fex+fw,fey-fw*2.5);ctx.stroke();
+            ctx.beginPath();ctx.moveTo(fex-fw,fey-fw*2.5);ctx.lineTo(fex+fw,fey-fw*1.5);ctx.stroke();
+            ctx.beginPath();ctx.arc(0,HY+HEAD*0.3,HEAD*0.36,Math.PI+0.4,Math.PI*2-0.4);ctx.stroke();
+            ctx.fillStyle='#74b9ff';
+            ctx.beginPath();ctx.arc(HEAD*1.35,HY,3*S,0,Math.PI*2);ctx.fill();
+            ctx.beginPath();ctx.moveTo(HEAD*1.35,HY+3*S);ctx.lineTo(HEAD*1.1,HY+9*S);ctx.lineTo(HEAD*1.6,HY+9*S);ctx.closePath();ctx.fill();
+        } else if(expr==='cry'){
+            ctx.beginPath();ctx.arc(-fex,fey,fw,0,Math.PI*2);ctx.fill();
+            ctx.beginPath();ctx.arc(fex,fey,fw,0,Math.PI*2);ctx.fill();
+            ctx.beginPath();ctx.arc(0,HY+HEAD*0.3,HEAD*0.36,Math.PI+0.4,Math.PI*2-0.4);ctx.stroke();
+            ctx.fillStyle='#74b9ff';
+            ctx.beginPath();ctx.ellipse(-fex,HY+HEAD*0.5,2.5*S,7*S,0,0,Math.PI*2);ctx.fill();
+            ctx.beginPath();ctx.ellipse(fex,HY+HEAD*0.5,2.5*S,7*S,0,0,Math.PI*2);ctx.fill();
+        }
+
+        // Hat
+        if(hat){
+            ctx.fillStyle='#111'; ctx.strokeStyle='#111'; ctx.lineWidth=LW*0.5;
+            const hbrim = HY - HEAD - 2*S;
+            // Brim
+            ctx.fillRect(-HEAD*1.25, hbrim-5*S, HEAD*2.5, 5*S);
+            // Crown
+            ctx.beginPath();
+            ctx.moveTo(-HEAD*0.75, hbrim-5*S);
+            ctx.lineTo(-HEAD*0.55, hbrim-26*S);
+            ctx.lineTo(HEAD*0.55,  hbrim-26*S);
+            ctx.lineTo(HEAD*0.75,  hbrim-5*S);
+            ctx.closePath(); ctx.fill();
+        }
+
+        ctx.restore();
+    }
+
+    // Walk pose helper — returns limb angles for a walking cycle
+    // phase = 0..2π continuous walk clock
+    function walkPose(phase, speed=1){
+        const s = speed;
+        return {
+            thighL:  Math.sin(phase)*0.45*s,
+            thighR: -Math.sin(phase)*0.45*s,
+            shinL:   Math.max(0, Math.sin(phase+0.6))*0.55*s,
+            shinR:   Math.max(0,-Math.sin(phase+0.6))*0.55*s,
+            uArmL:   Math.sin(phase+Math.PI)*0.5*s,   // arms swing opposite legs
+            uArmR:  -Math.sin(phase+Math.PI)*0.5*s,
+            lArmL:   Math.sin(phase)*0.2*s,
+            lArmR:  -Math.sin(phase)*0.2*s,
+        };
+    }
+
+    // Run pose (more exaggerated)
+    function runPose(phase){
+        return {
+            thighL:  Math.sin(phase)*0.7,
+            thighR: -Math.sin(phase)*0.7,
+            shinL:   Math.max(0, Math.sin(phase+0.8))*0.9,
+            shinR:   Math.max(0,-Math.sin(phase+0.8))*0.9,
+            uArmL:   Math.sin(phase+Math.PI)*0.75,
+            uArmR:  -Math.sin(phase+Math.PI)*0.75,
+            lArmL:   Math.sin(phase)*0.3,
+            lArmR:  -Math.sin(phase)*0.3,
+        };
+    }
+
+    // ── SPEECH BUBBLE ───────────────────────────────────────────
+    function bubble(ctx,bx,by,text,opts={}){
+        const fs=opts.fs||13, pad=opts.pad||14, lh=fs*1.5;
+        const lines=text.split('\n');
+        const maxW=lines.reduce((m,l)=>{ ctx.font=`bold ${fs}px Jost,sans-serif`; return Math.max(m,ctx.measureText(l).width); },0);
+        const bw=maxW+pad*2, bh=lines.length*lh+pad;
+        const tx=opts.tail==='right'?bx+bw/2-20:bx-bw/2+20;
+        ctx.save();
+        ctx.fillStyle='#fff';ctx.strokeStyle='#ddd';ctx.lineWidth=1.5;
+        ctx.shadowColor='rgba(0,0,0,0.18)';ctx.shadowBlur=10;
+        roundRect(ctx,bx-bw/2,by-bh,bw,bh,10);ctx.fill();ctx.stroke();
+        ctx.shadowBlur=0;
+        ctx.beginPath();
+        ctx.moveTo(tx-12,by);ctx.lineTo(tx,by+16);ctx.lineTo(tx+12,by);
+        ctx.fillStyle='#fff';ctx.fill();
+        ctx.fillStyle='#222';ctx.font=`bold ${fs}px 'Jost',sans-serif`;
+        ctx.textAlign='center';ctx.textBaseline='middle';
+        lines.forEach((l,i)=>ctx.fillText(l,bx,by-bh+(i+0.5)*lh+pad*0.5));
+        ctx.restore();
+    }
+
+    // ── THOUGHT BUBBLE ──────────────────────────────────────────
+    function thought(ctx,ox,oy,text){
+        const lines=text.split('\n');
+        ctx.save();
+        for(let i=0;i<3;i++){
+            ctx.beginPath();ctx.arc(ox+10+i*14,oy-i*10,4+i*1.5,0,Math.PI*2);
+            ctx.fillStyle='rgba(255,255,255,0.9)';ctx.fill();
+        }
+        const bx=ox+60,by=oy-60;
+        ctx.fillStyle='rgba(255,255,255,0.95)';ctx.strokeStyle='#ddd';ctx.lineWidth=1.5;
+        ctx.beginPath();ctx.ellipse(bx,by,52,28,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+        ctx.fillStyle='#333';ctx.font=`bold 11px 'Jost',sans-serif`;
+        ctx.textAlign='center';ctx.textBaseline='middle';
+        lines.forEach((l,i)=>ctx.fillText(l,bx,by+(i-(lines.length-1)/2)*14));
+        ctx.restore();
+    }
+
+    // ── LIGHTNING ───────────────────────────────────────────────
+    function lightning(ctx,x1,y1,x2,y2,seed=0){
+        ctx.save();
+        const steps=10;
+        const pts=[[x1,y1]];
+        for(let i=1;i<steps;i++){
+            const f=i/steps;
+            const mx=x1+(x2-x1)*f, my=y1+(y2-y1)*f;
+            const jag=(Math.sin(seed+i*7.3)*0.5+0.5)*28-14;
+            const perp=-(y2-y1)/Math.hypot(x2-x1,y2-y1);
+            pts.push([mx+perp*jag, my+jag*0.4]);
+        }
+        pts.push([x2,y2]);
+        // Glow
+        ctx.strokeStyle='rgba(255,255,180,0.4)';ctx.lineWidth=8;ctx.shadowBlur=0;
+        ctx.beginPath();pts.forEach(([px,py],i)=>i?ctx.lineTo(px,py):ctx.moveTo(px,py));ctx.stroke();
+        // Core
+        ctx.strokeStyle='#fff9a0';ctx.lineWidth=3;
+        ctx.shadowColor='#ffe040';ctx.shadowBlur=14;
+        ctx.beginPath();pts.forEach(([px,py],i)=>i?ctx.lineTo(px,py):ctx.moveTo(px,py));ctx.stroke();
+        // White center
+        ctx.strokeStyle='#ffffff';ctx.lineWidth=1.2;ctx.shadowBlur=4;
+        ctx.beginPath();pts.forEach(([px,py],i)=>i?ctx.lineTo(px,py):ctx.moveTo(px,py));ctx.stroke();
+        ctx.restore();
+    }
+
+    // ── POWERBOX ────────────────────────────────────────────────
+    function powerBox(ctx,x,y,sc=1){
+        const W2=44*sc,H2=58*sc;
+        ctx.save();ctx.translate(x,y);
+        // Shadow
+        ctx.fillStyle='rgba(0,0,0,0.25)';
+        ctx.beginPath();ctx.ellipse(4*sc,H2*0.5,W2*0.5,8*sc,0,0,Math.PI*2);ctx.fill();
+        // Body
+        const bg=ctx.createLinearGradient(-W2/2,0,W2/2,0);
+        bg.addColorStop(0,'#5a5a6a');bg.addColorStop(0.5,'#7a7a8a');bg.addColorStop(1,'#4a4a5a');
+        ctx.fillStyle=bg;roundRect(ctx,-W2/2,-H2,W2,H2,4*sc);ctx.fill();
+        ctx.strokeStyle='#333';ctx.lineWidth=1.5;ctx.stroke();
+        // Danger stripe
+        const stripe=8*sc;
+        for(let i=0;i<6;i++){
+            ctx.fillStyle=i%2?'#f1c40f':'#e74c3c';
+            ctx.fillRect(-W2/2+i*stripe,-H2,stripe,H2*0.25);
+        }
+        // Screw corners
+        ctx.fillStyle='#aaa';
+        [[(-W2/2+5*sc),(-H2+5*sc)],[W2/2-5*sc,-H2+5*sc],[-W2/2+5*sc,-5*sc],[W2/2-5*sc,-5*sc]].forEach(([sx,sy])=>{
+            ctx.beginPath();ctx.arc(sx,sy,3*sc,0,Math.PI*2);ctx.fill();
+        });
+        // Warning label
+        ctx.fillStyle='#f1c40f';ctx.strokeStyle='#e67e00';ctx.lineWidth=1*sc;
+        ctx.font=`bold ${16*sc}px monospace`;ctx.textAlign='center';
+        ctx.fillText('⚡',0,-H2*0.55);
+        ctx.fillStyle='#fff';ctx.font=`bold ${7*sc}px monospace`;
+        ctx.fillText('DANGER',0,-H2*0.28);
+        // Terminals at bottom
+        ctx.fillStyle='#ccc';
+        [-12*sc,0,12*sc].forEach(tx=>{
+            ctx.beginPath();ctx.arc(tx,-8*sc,4*sc,0,Math.PI*2);ctx.fill();
+            ctx.strokeStyle='#666';ctx.lineWidth=1;ctx.stroke();
+        });
+        ctx.restore();
+    }
+
+    // ── SMOKE ───────────────────────────────────────────────────
+    function smoke(ctx,x,y,t,n=5){
+        for(let i=0;i<n;i++){
+            const age=((t*0.03+i/n)%1);
+            const sy=y-age*80, sx=x+Math.sin(age*9+i*1.8)*18;
+            ctx.save();
+            ctx.globalAlpha=(1-age)*0.45;
+            const sg=ctx.createRadialGradient(sx,sy,0,sx,sy,12+age*18);
+            sg.addColorStop(0,'#bbb');sg.addColorStop(1,'rgba(150,150,150,0)');
+            ctx.fillStyle=sg;ctx.beginPath();ctx.arc(sx,sy,12+age*18,0,Math.PI*2);ctx.fill();
+            ctx.restore();
+        }
+    }
+
+    // ── SCENES FACTORY ──────────────────────────────────────────
+    // Returns fresh scene array — call every time to avoid state bleed
+    function makeScenes(){
+        return [
+
+        // 0 — TITLE CARD
+        { dur:3500, label:'', caption:'',
+          draw(ctx,W,H,p,t){
+            ctx.fillStyle='#07070e';ctx.fillRect(0,0,W,H);
+            for(let i=0;i<60;i++){
+                const px=((Math.sin(i*97.3)*0.5+0.5)*W+t*0.15*(i%3?1:-1))%W;
+                const py=(Math.cos(i*53.7)*0.5+0.5)*H;
+                ctx.save();ctx.globalAlpha=0.08+Math.sin(t*0.035+i)*0.07;
+                ctx.fillStyle='#c9a96e';ctx.beginPath();ctx.arc(px,py,1,0,Math.PI*2);ctx.fill();ctx.restore();
+            }
+            const vg=ctx.createRadialGradient(W/2,H/2,0,W/2,H/2,W*0.6);
+            vg.addColorStop(0,'rgba(201,169,110,0.07)');vg.addColorStop(1,'rgba(0,0,0,0)');
+            ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
+            const a=p<0.1?p/0.1:p>0.8?(1-p)/0.2:1;
+            ctx.save();ctx.globalAlpha=a;
+            ctx.textAlign='center';ctx.textBaseline='middle';
+            const lw2=Math.min(1,(p<0.1?p/0.1:1))*280;
+            ctx.strokeStyle='rgba(201,169,110,0.35)';ctx.lineWidth=1;
+            ctx.beginPath();ctx.moveTo(W/2-lw2,H/2-62);ctx.lineTo(W/2+lw2,H/2-62);ctx.stroke();
+            ctx.beginPath();ctx.moveTo(W/2-lw2,H/2+68);ctx.lineTo(W/2+lw2,H/2+68);ctx.stroke();
+            ctx.font="400 11px 'Jost',sans-serif";
+            ctx.fillStyle='rgba(201,169,110,0.55)';
+            ctx.fillText('A  L A S T  P I E C E  P R E S E N T A T I O N',W/2,H/2-40);
+            ctx.font="300 62px 'Cormorant Garamond',serif";
+            ctx.fillStyle='#F5F0E8';
+            ctx.shadowColor='rgba(201,169,110,0.3)';ctx.shadowBlur=28;
+            ctx.fillText('Uncle Gerald',W/2,H/2+4);
+            ctx.shadowBlur=0;
+            ctx.font="300 italic 21px 'Cormorant Garamond',serif";
+            ctx.fillStyle='rgba(245,240,232,0.45)';
+            ctx.fillText('Based on Actual Events  ·  Mostly',W/2,H/2+46);
+            ctx.restore();
+        }},
+
+        // 1 — MEET UNCLE GERALD
+        { dur:4200, label:'Meet Uncle Gerald', caption:'This is Uncle Gerald. He is <strong>extremely confident</strong> around electrical equipment.',
+          draw(ctx,W,H,p,t){
+            drawBG(ctx,W,H,'day');
+            // House
+            ctx.save();
+            ctx.fillStyle='#d4956a';ctx.fillRect(W*0.58,H*0.38,W*0.38,H*0.34);
+            ctx.fillStyle='#8B4513';
+            ctx.beginPath();ctx.moveTo(W*0.55,H*0.38);ctx.lineTo(W*0.77,H*0.13);ctx.lineTo(W*0.99,H*0.38);ctx.closePath();ctx.fill();
+            ctx.fillStyle='#5a3a1a';ctx.fillRect(W*0.72,H*0.54,W*0.08,H*0.18);
+            ctx.fillStyle='#c9a96e';ctx.beginPath();ctx.arc(W*0.798,H*0.625,3,0,Math.PI*2);ctx.fill();
+            ctx.fillStyle='rgba(135,206,235,0.7)';ctx.fillRect(W*0.61,H*0.44,W*0.09,H*0.1);
+            ctx.strokeStyle='#8B4513';ctx.lineWidth=3;ctx.strokeRect(W*0.61,H*0.44,W*0.09,H*0.1);
+            ctx.restore();
+            // Utility pole left side
+            ctx.save();ctx.fillStyle='#7a5a2a';ctx.fillRect(W*0.12,H*0.22,10,H*0.5);
+            ctx.fillRect(W*0.08,H*0.26,18,7);
+            // Wires to house
+            ctx.strokeStyle='#333';ctx.lineWidth=2;ctx.setLineDash([5,3]);
+            ctx.beginPath();ctx.moveTo(W*0.12,H*0.28);ctx.quadraticCurveTo(W*0.35,H*0.38,W*0.58,H*0.3);ctx.stroke();
+            ctx.setLineDash([]);ctx.restore();
+            // Gerald walking happily with good walk cycle
+            const hipY = H*0.69;
+            const phase = t*0.11;
+            const bob = Math.sin(phase*2)*3;
+            const wp = walkPose(phase, 0.9);
+            fig(ctx, W*0.3, hipY+bob, 1.05, {expr:'smile', hat:true, col:'#1a3a8a', ...wp});
+            // Label
+            ctx.save();ctx.globalAlpha=fadeIn(p,0.25,0.25);
+            ctx.font="600 13px 'Jost',sans-serif";ctx.fillStyle='#222';
+            ctx.textAlign='center';ctx.fillText('Uncle Gerald 👴',W*0.3,H*0.82);ctx.restore();
+            if(p>0.5){
+                ctx.save();ctx.globalAlpha=fadeIn(p,0.5,0.2);
+                thought(ctx,W*0.3+20,hipY-65,'Fix the power\nbox today! 🔧');ctx.restore();
+            }
+        }},
+
+        // 2 — GERALD WALKS TO POLE THEN CLIMBS IT
+        { dur:6500, label:'Gerald: "I don\'t need no electrician!"', caption:'Gerald spots the power box at the top of the utility pole. He decides to climb it. <em>Himself.</em>',
+          draw(ctx,W,H,p,t){
+            drawBG(ctx,W,H,'day');
+
+            // Utility pole — fixed centre-left
+            const POLE_X = W*0.48, POLE_TOP = H*0.1, POLE_BOT = H*0.72;
+            const POLE_W = 13;
+            // Shadow
+            ctx.save();ctx.fillStyle='rgba(0,0,0,0.12)';
+            ctx.fillRect(POLE_X+6,POLE_TOP+20,POLE_W*0.6,POLE_BOT-POLE_TOP);ctx.restore();
+            // Pole body
+            ctx.save();
+            const poleGrad=ctx.createLinearGradient(POLE_X,0,POLE_X+POLE_W,0);
+            poleGrad.addColorStop(0,'#5a3a10');poleGrad.addColorStop(0.4,'#8b6020');poleGrad.addColorStop(1,'#4a2e08');
+            ctx.fillStyle=poleGrad;ctx.fillRect(POLE_X,POLE_TOP,POLE_W,POLE_BOT-POLE_TOP);
+            // Cross-arm
+            ctx.fillStyle='#6a4818';ctx.fillRect(POLE_X-40,POLE_TOP+30,POLE_W+80,8);
+            // Insulators on crossarm
+            ctx.fillStyle='#ddd';
+            [-35,POLE_W+28].forEach(dx=>{
+                ctx.beginPath();ctx.arc(POLE_X+dx+6,POLE_TOP+34,5,0,Math.PI*2);ctx.fill();
+            });
+            // Wires from crossarm
+            ctx.strokeStyle='#222';ctx.lineWidth=2;ctx.setLineDash([4,3]);
+            ctx.beginPath();ctx.moveTo(POLE_X-30,POLE_TOP+34);ctx.quadraticCurveTo(POLE_X*0.4,H*0.32,0,H*0.35);ctx.stroke();
+            ctx.beginPath();ctx.moveTo(POLE_X+POLE_W+28,POLE_TOP+34);ctx.quadraticCurveTo(W*0.7,H*0.28,W,H*0.32);ctx.stroke();
+            ctx.setLineDash([]);ctx.restore();
+            // Power box at top of pole
+            powerBox(ctx, POLE_X+POLE_W/2, POLE_TOP+28, 1.1);
+
+            // ── Phase split: 0-0.35 = walking, 0.35-1.0 = climbing ──
+            const WALK_END = 0.35;
+
+            if(p < WALK_END){
+                // Walk from far left toward pole base
+                const wp2 = p/WALK_END;           // 0→1
+                const walkX = W*0.06 + ease(wp2)*(POLE_X - W*0.14);
+                const phase2 = t*0.13;
+                const bob2 = Math.sin(phase2*2)*3;
+                const wpose = walkPose(phase2, 1.0);
+                fig(ctx, walkX, POLE_BOT+bob2, 1.05, {expr:'smile', hat:true, col:'#1a3a8a', ...wpose});
+                if(wp2>0.5){
+                    ctx.save();ctx.globalAlpha=fadeIn(wp2,0.5,0.25);
+                    bubble(ctx, walkX, POLE_BOT-95, "I got this.\nHow hard can it be? 😤", {fs:12,tail:'right'});
+                    ctx.restore();
+                }
+            } else {
+                // CLIMBING the pole
+                const cp = (p-WALK_END)/(1-WALK_END);  // 0→1
+
+                // How high up the pole Gerald has climbed
+                const maxClimb = POLE_BOT - POLE_TOP - 20;
+                const climbed  = ease(Math.min(cp/0.75,1)) * maxClimb;
+                // Gerald's hip position on the pole
+                const gHipY = POLE_BOT - climbed;
+                const gHipX = POLE_X + POLE_W*0.5;
+
+                // Climbing pose: arms grabbing pole above, legs pushing alternately
+                const climbPhase = t*0.18;
+                // Alternate arm reach — right arm reaches up, left grips
+                const armPull = Math.sin(climbPhase)*0.4;
+                fig(ctx, gHipX, gHipY, 1.05, {
+                    expr: cp > 0.72 ? 'smile' : 'smile',
+                    hat: true, col:'#1a3a8a',
+                    // Arms reach UP and grip pole  (negative = forward/up)
+                    uArmL: -1.1 + armPull*0.3,   lArmL: 0.3,
+                    uArmR: -1.1 - armPull*0.3,   lArmR: 0.3,
+                    // Legs press sideways against pole alternately
+                    thighL:  Math.sin(climbPhase)*0.45,
+                    thighR: -Math.sin(climbPhase)*0.45,
+                    shinL:  -Math.sin(climbPhase+0.5)*0.3,
+                    shinR:   Math.sin(climbPhase+0.5)*0.3,
+                    lean: Math.sin(climbPhase*0.5)*0.06,
+                });
+
+                // Effort puff when mid-climb
+                if(cp>0.15 && cp<0.75){
+                    const puffAge = (t*0.05)%1;
+                    ctx.save();ctx.globalAlpha=(1-puffAge)*0.7;
+                    ctx.font=`${14+puffAge*6}px serif`;ctx.textAlign='left';
+                    ctx.fillText('💦',gHipX+22-puffAge*18, gHipY-30-puffAge*25);
+                    ctx.restore();
+                }
+                // Speech bubble — always pinned to lower-left so it's never off screen
+                // Arrow points up toward Gerald
+                const bubBY = H*0.88;  // always near bottom
+                const bubBX = W*0.18;
+                if(cp>0.08 && cp<0.6){
+                    ctx.save();ctx.globalAlpha=fadeIn(cp,0.08,0.15)*clamp(1-(cp-0.45)/0.15,0,1);
+                    // Draw bubble pointing UP
+                    const btext = cp < 0.3 ? "Ugh...\nalmost there! 😤" : "I can do this!\nNo problem! 👍";
+                    const blines=btext.split('\n');
+                    const bfs=13, bpad=14, blh=bfs*1.55;
+                    ctx.font=`bold ${bfs}px 'Jost',sans-serif`;
+                    const bmaxW=blines.reduce((m,l)=>Math.max(m,ctx.measureText(l).width),0);
+                    const bbw=bmaxW+bpad*2, bbh=blines.length*blh+bpad;
+                    // box sits at bottom
+                    ctx.fillStyle='#fff';ctx.strokeStyle='#ddd';ctx.lineWidth=1.5;
+                    ctx.shadowColor='rgba(0,0,0,0.2)';ctx.shadowBlur=8;
+                    roundRect(ctx,bubBX-bbw/2,bubBY-bbh,bbw,bbh,10);ctx.fill();ctx.stroke();
+                    ctx.shadowBlur=0;
+                    // Tail pointing UP toward Gerald
+                    ctx.beginPath();ctx.moveTo(bubBX-10,bubBY-bbh);ctx.lineTo(bubBX,bubBY-bbh-16);ctx.lineTo(bubBX+10,bubBY-bbh);
+                    ctx.fillStyle='#fff';ctx.fill();
+                    ctx.fillStyle='#222';ctx.textAlign='center';ctx.textBaseline='middle';
+                    blines.forEach((l,i)=>ctx.fillText(l,bubBX,bubBY-bbh+(i+0.5)*blh+bpad*0.5));
+                    ctx.restore();
+                }
+                // "Found it!" also pinned low
+                if(cp>0.72){
+                    const reachP = fadeIn(cp,0.72,0.2);
+                    ctx.save();ctx.globalAlpha=reachP;
+                    const btext2="Found it!\nNow let's just...";
+                    const blines2=btext2.split('\n');
+                    const bfs2=13, bpad2=14, blh2=bfs2*1.55;
+                    ctx.font=`bold ${bfs2}px 'Jost',sans-serif`;
+                    const bmaxW2=blines2.reduce((m,l)=>Math.max(m,ctx.measureText(l).width),0);
+                    const bbw2=bmaxW2+bpad2*2, bbh2=blines2.length*blh2+bpad2;
+                    ctx.fillStyle='#fff';ctx.strokeStyle='#ddd';ctx.lineWidth=1.5;
+                    ctx.shadowColor='rgba(0,0,0,0.2)';ctx.shadowBlur=8;
+                    roundRect(ctx,W*0.18-bbw2/2,H*0.88-bbh2,bbw2,bbh2,10);ctx.fill();ctx.stroke();
+                    ctx.shadowBlur=0;
+                    ctx.beginPath();ctx.moveTo(W*0.18-10,H*0.88-bbh2);ctx.lineTo(W*0.18,H*0.88-bbh2-16);ctx.lineTo(W*0.18+10,H*0.88-bbh2);
+                    ctx.fillStyle='#fff';ctx.fill();
+                    ctx.fillStyle='#222';ctx.textAlign='center';ctx.textBaseline='middle';
+                    blines2.forEach((l,i)=>ctx.fillText(l,W*0.18,H*0.88-bbh2+(i+0.5)*blh2+bpad2*0.5));
+                    ctx.restore();
+                }
+            }
+        }},
+
+        // 3 — ZAP! (Gerald at top of pole gets electrocuted and falls)
+        { dur:5500, label:'⚡ INCIDENT REPORT #0001', caption:'<strong>240 volts.</strong> Uncle Gerald has made personal contact with the electrical grid.',
+          draw(ctx,W,H,p,t){
+            drawBG(ctx,W,H,'day');
+            const POLE_X=W*0.48, POLE_TOP=H*0.1, POLE_BOT=H*0.72, POLE_W=13;
+
+            // Pole
+            ctx.save();
+            const pg2=ctx.createLinearGradient(POLE_X,0,POLE_X+POLE_W,0);
+            pg2.addColorStop(0,'#5a3a10');pg2.addColorStop(0.4,'#8b6020');pg2.addColorStop(1,'#4a2e08');
+            ctx.fillStyle=pg2;ctx.fillRect(POLE_X,POLE_TOP,POLE_W,POLE_BOT-POLE_TOP);
+            ctx.fillStyle='#6a4818';ctx.fillRect(POLE_X-40,POLE_TOP+30,POLE_W+80,8);
+            ctx.fillStyle='#ddd';
+            [-35,POLE_W+28].forEach(dx=>{ctx.beginPath();ctx.arc(POLE_X+dx+6,POLE_TOP+34,5,0,Math.PI*2);ctx.fill();});
+            ctx.restore();
+            powerBox(ctx,POLE_X+POLE_W/2,POLE_TOP+28,1.1);
+
+            const ZAP_END = 0.52;   // zap phase ends, fall begins
+            const zapPhase = p < ZAP_END;
+            const fallP    = zapPhase ? 0 : (p-ZAP_END)/(1-ZAP_END);
+
+            if(zapPhase){
+                // Gerald at top, being electrocuted, arms flung out
+                const shk = Math.sin(t*0.9)*9*(1-p/ZAP_END*0.3);
+                fig(ctx, POLE_X+POLE_W/2+shk, POLE_TOP+80, 1.05, {
+                    expr:'shocked', hat:false, col:'#1a3a8a', glow:true,
+                    uArmL:-1.5,  lArmL:-1.6,    // arms blasted outward
+                    uArmR: 1.5,  lArmR: 1.6,
+                    thighL:-0.3, thighR:0.3,
+                    shinL: 0.4,  shinR:-0.4,
+                    shakeX:shk*0.4
+                });
+                // Lightning arcing from box to Gerald
+                if(t%3<2){
+                    lightning(ctx, POLE_X+POLE_W/2, POLE_TOP+28, POLE_X+POLE_W/2+shk-12, POLE_TOP+55, t*0.8);
+                    lightning(ctx, POLE_X+POLE_W/2, POLE_TOP+28, POLE_X+POLE_W/2+shk+8,  POLE_TOP+62, t*0.8+1.7);
+                }
+                // Full-screen flash
+                ctx.save();ctx.globalAlpha=0.1+Math.sin(t*0.6)*0.09;
+                ctx.fillStyle='#ffffa0';ctx.fillRect(0,0,W,H);ctx.restore();
+                // Orbiting sparks around Gerald at top
+                for(let i=0;i<7;i++){
+                    const sa=(t*0.12+i/7)*Math.PI*2;
+                    ctx.save();ctx.font=`${12+Math.sin(t*0.15+i)*3}px serif`;ctx.textAlign='center';
+                    ctx.fillText(['⚡','✨','💫','⭐'][i%4], POLE_X+POLE_W/2+Math.cos(sa)*55, POLE_TOP+75+Math.sin(sa)*28);
+                    ctx.restore();
+                }
+                // ZAP! text
+                const zs=62+Math.sin(t*0.42)*9;
+                ctx.save();ctx.globalAlpha=0.5+Math.abs(Math.sin(t*0.45))*0.5;
+                ctx.font=`900 ${zs}px 'Jost',sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';
+                ctx.strokeStyle='#e67e00';ctx.lineWidth=4;
+                ctx.fillStyle='#ffe040';ctx.shadowColor='#ffe040';ctx.shadowBlur=28;
+                ctx.strokeText('ZAP!!!',W*0.78,H*0.28);ctx.fillText('ZAP!!!',W*0.78,H*0.28);
+                ctx.restore();
+
+            } else {
+                // FALL — Gerald drops from top of pole to ground
+                // Arc trajectory: start at top of pole, land on ground some distance away
+                const fy = ease(fallP);
+                const startX=POLE_X+POLE_W/2, startY=POLE_TOP+80;
+                const endX=POLE_X+160, endY=POLE_BOT+20;
+                const arcY = startY + (endY-startY)*fy - Math.sin(fy*Math.PI)*60; // parabola arc
+                const arcX = startX + (endX-startX)*fy;
+                const bodyRot = fallP*Math.PI*0.6;   // tumbling
+
+                ctx.save();ctx.translate(arcX,arcY);ctx.rotate(bodyRot);
+                fig(ctx,0,0,1.05,{
+                    expr:'dead',col:'#1a3a8a',hat:false,
+                    uArmL:-1.4, lArmL:-1.5,
+                    uArmR: 1.4, lArmR: 1.5,
+                    thighL:0.5, thighR:-0.5,
+                    shinL:-0.6, shinR:0.6,
+                });
+                ctx.restore();
+
+                // Hat tumbles separately
+                const hx=startX + (endX-startX-80)*fy;
+                const hy=startY + (endY-startY-40)*fy - Math.sin(fy*Math.PI)*100;
+                ctx.save();ctx.translate(hx,hy);ctx.rotate(-fallP*2.5);
+                ctx.fillStyle='#111';ctx.fillRect(-14,-4,28,6);
+                ctx.beginPath();ctx.moveTo(-10,-4);ctx.lineTo(-7,-24);ctx.lineTo(7,-24);ctx.lineTo(10,-4);ctx.closePath();ctx.fill();
+                ctx.restore();
+
+                // Smoke from box
+                smoke(ctx,POLE_X+POLE_W/2,POLE_TOP+40,t);
+
+                // THUD
+                if(fallP>0.78){
+                    ctx.save();ctx.globalAlpha=ease((fallP-0.78)/0.22);
+                    const ts2=38+Math.sin(t*0.3)*3;
+                    ctx.font=`900 ${ts2}px 'Jost',sans-serif`;ctx.fillStyle='#8B4513';
+                    ctx.textAlign='center';ctx.textBaseline='middle';
+                    ctx.shadowColor='rgba(0,0,0,0.4)';ctx.shadowBlur=6;
+                    ctx.fillText('THUD 💥',endX+30,endY+40);ctx.restore();
+                }
+            }
+        }},
+
+        // 4 — FAMILY ARRIVES
+        { dur:4800, label:'Meanwhile, the family...', caption:'The family arrives to find Uncle Gerald... <em>horizontal.</em>',
+          draw(ctx,W,H,p,t){
+            drawBG(ctx,W,H,'day');
+            // Gerald lying flat on grass
+            ctx.save();ctx.translate(W*0.58,H*0.77);ctx.rotate(-Math.PI*0.5);
+            fig(ctx,0,0,0.9,{expr:'dead',col:'#1a3a8a',
+                uArmL:-1.4,lArmL:-1.5,uArmR:1.4,lArmR:1.5,
+                thighL:0.4,thighR:-0.25,shinL:-0.4,shinR:0.2});
+            ctx.restore();
+            // Warning tape
+            if(p>0.1){
+                ctx.save();ctx.globalAlpha=fadeIn(p,0.1,0.15);
+                ctx.strokeStyle='#f1c40f';ctx.lineWidth=4;ctx.setLineDash([20,8]);
+                ctx.beginPath();ctx.moveTo(W*0.3,H*0.84);ctx.lineTo(W*0.82,H*0.84);ctx.stroke();
+                ctx.setLineDash([]);ctx.font="bold 11px monospace";ctx.fillStyle='#e74c3c';
+                ctx.textAlign='center';ctx.fillText('⚡  DO NOT TOUCH  ⚡',W*0.56,H*0.9);ctx.restore();
+            }
+            const chars=[
+                {bd:0,    col:'#c0392b',bbl:'GERALD!!\nNOOOO!! 😱'},
+                {bd:0.12, col:'#27ae60',bbl:'what do\nwe DO?!'},
+                {bd:0.22, col:'#8e44ad',bbl:'call 911!!\nsomebody!!'},
+            ];
+            const destXs=[W*0.2, W*0.33, W*0.1];
+            chars.forEach((c,i)=>{
+                const arrP=Math.min(1,(p-c.bd)/0.5);
+                if(arrP<=0) return;
+                const cx=-80+(destXs[i]+80)*ease(arrP);
+                const running=arrP<0.92;
+                const rphase=t*0.16+i*1.2;
+                const bob=running?Math.sin(rphase*2)*5:Math.sin(t*0.04+i)*2;
+                const rp=running?runPose(rphase):{thighL:0.1,thighR:-0.1,shinL:0.05,shinR:0.05,uArmL:-0.4,uArmR:0.4,lArmL:0.2,lArmR:-0.2};
+                fig(ctx,cx,H*0.69+bob,0.9,{expr:i===2?'cry':i===1?'worry':'shocked',col:c.col,...rp});
+                if(p>0.4+i*0.1){
+                    ctx.save();ctx.globalAlpha=fadeIn(p,0.4+i*0.1,0.15);
+                    bubble(ctx,cx,H*0.38+i*6,c.bbl,{fs:12,tail:i%2?'right':'left'});ctx.restore();
+                }
+            });
+        }},
+
+        // 5 — AWKWARD SILENCE
+        { dur:4500, label:'"So... what do we do now?"', caption:'Nobody knows what to do. The vibes are <strong>not good.</strong>',
+          draw(ctx,W,H,p,t){
+            drawBG(ctx,W,H,'house');
+            ctx.save();ctx.translate(W*0.55,H*0.82);ctx.rotate(-Math.PI*0.5);ctx.globalAlpha=0.5;
+            fig(ctx,0,0,0.72,{expr:'dead',col:'#1a3a8a',uArmL:-1.3,lArmL:-1.4,uArmR:1.3,lArmR:1.4,thighL:0.4,thighR:-0.2,shinL:-0.3,shinR:0.15});
+            ctx.restore();
+            const poses=[{x:W*0.12,col:'#c0392b',expr:'worry'},{x:W*0.3,col:'#27ae60',expr:'worry'},{x:W*0.78,col:'#8e44ad',expr:'cry'}];
+            poses.forEach((po,i)=>{
+                const sway=Math.sin(t*0.025+i*1.8)*4;
+                const scratch=Math.sin(t*0.07+i)*0.18;
+                fig(ctx,po.x+sway,H*0.69,0.92,{
+                    expr:po.expr,col:po.col,
+                    uArmL:-0.5+scratch,lArmL:0.3,
+                    uArmR:0.35-scratch*0.5,lArmR:-0.15,
+                    thighL:0.08,thighR:-0.08,shinL:0.05,shinR:0.05
+                });
+            });
+            const twx=(t*1.8+80)%(W+80)-80;
+            ctx.save();ctx.globalAlpha=0.55;ctx.font='22px serif';ctx.fillText('🌿',twx,H*0.88);ctx.restore();
+            if(p>0.3){
+                ctx.save();ctx.globalAlpha=fadeIn(p,0.3,0.2)*(0.5+Math.sin(t*0.1)*0.5);
+                ctx.font="italic 13px 'Cormorant Garamond',serif";ctx.fillStyle='rgba(0,0,0,0.25)';
+                ctx.textAlign='center';ctx.fillText('*cricket sounds*',W*0.68,H*0.58);ctx.restore();
+            }
+            const tbls=[['Google?\nidk 🤷',W*0.12+20],['just pray?\n🙏',W*0.3+20],['call his\nwife??',W*0.78-25]];
+            if(p>0.48) tbls.forEach(([txt,ox],i)=>{
+                if(p>0.48+i*0.14){
+                    ctx.save();ctx.globalAlpha=fadeIn(p,0.48+i*0.14,0.16);
+                    thought(ctx,ox,H*0.52,txt);ctx.restore();
+                }
+            });
+        }},
+
+        // 6 — PHONE SCENE — BIG CRISP PHONE, readable UI
+        { dur:5500, label:'Then... divine intervention 📱', caption:'Then someone Googled it on their phone and found <strong>Last Piece Funeral Services</strong>.',
+          draw(ctx,W,H,p,t){
+            drawBG(ctx,W,H,'house');
+            // Gerald ghost in background
+            ctx.save();ctx.translate(W*0.88,H*0.83);ctx.rotate(-Math.PI*0.5);ctx.globalAlpha=0.28;
+            fig(ctx,0,0,0.55,{expr:'dead',col:'#1a3a6a',uArmL:-1.2,lArmL:-1.3,uArmR:1.2,lArmR:1.3,thighL:0.3,thighR:-0.2,shinL:-0.2,shinR:0.1});
+            ctx.restore();
+
+            // Person holding phone (left side)
+            const pGlow=0.75+Math.sin(t*0.1)*0.25;
+            fig(ctx,W*0.22,H*0.68,1.05,{
+                expr:'shocked',col:'#c0392b',
+                uArmL:-0.3,lArmL:0.4,    // left arm up-ish
+                uArmR: 0.45,lArmR:-1.0,  // right arm holds phone out in front
+                thighL:0.08,thighR:-0.08,shinL:0.05,shinR:0.05
+            });
+
+            // ── PHONE — big, pixel-sharp, drawn on 2x scale then drawn normally ──
+            // Phone outer shell
+            const PX=W*0.38, PY=H*0.08, PW=195, PHH=310, PR=18;
+            ctx.save();
+            // Drop shadow
+            ctx.shadowColor='rgba(0,0,0,0.5)';ctx.shadowBlur=30*pGlow;ctx.shadowOffsetX=4;ctx.shadowOffsetY=8;
+            ctx.fillStyle='#1a1a1a';
+            roundRect(ctx,PX,PY,PW,PHH,PR);ctx.fill();
+            ctx.shadowBlur=0;ctx.shadowOffsetX=0;ctx.shadowOffsetY=0;
+            // Bezels / frame highlight
+            ctx.strokeStyle='#3a3a3a';ctx.lineWidth=2;
+            roundRect(ctx,PX,PY,PW,PHH,PR);ctx.stroke();
+            ctx.strokeStyle='rgba(255,255,255,0.06)';ctx.lineWidth=1;
+            roundRect(ctx,PX+1,PY+1,PW-2,PHH-2,PR-1);ctx.stroke();
+
+            // Screen background
+            ctx.fillStyle='#06101e';
+            roundRect(ctx,PX+5,PY+8,PW-10,PHH-16,PR-4);ctx.fill();
+
+            // Dynamic notch
+            ctx.fillStyle='#1a1a1a';
+            roundRect(ctx,PX+PW*0.32,PY+8,PW*0.36,16,8);ctx.fill();
+
+            // Side buttons
+            ctx.fillStyle='#2a2a2a';ctx.fillRect(PX+PW-3,PY+60,5,28);
+            ctx.fillStyle='#2a2a2a';ctx.fillRect(PX-2,PY+55,4,20);ctx.fillRect(PX-2,PY+82,4,20);
+
+            ctx.shadowBlur=0;
+
+            // ── STATUS BAR ──
+            const SX=PX+10, SW=PW-20;
+            ctx.fillStyle='rgba(201,169,110,0.15)';ctx.fillRect(PX+5,PY+24,PW-10,22);
+            ctx.fillStyle='#c9a96e';ctx.font="600 10px 'Jost',sans-serif";ctx.textAlign='left';ctx.textBaseline='middle';
+            ctx.fillText('9:41',SX,PY+35);
+            ctx.textAlign='right';ctx.fillStyle='rgba(201,169,110,0.8)';ctx.font='11px serif';
+            ctx.fillText('▪▪▪ WiFi ■■■',PX+PW-12,PY+35);
+
+            // ── APP HEADER (navy gradient bar) ──
+            const appGrad=ctx.createLinearGradient(PX+5,PY+46,PX+5,PY+90);
+            appGrad.addColorStop(0,'#0a1830');appGrad.addColorStop(1,'#081220');
+            ctx.fillStyle=appGrad;ctx.fillRect(PX+5,PY+46,PW-10,44);
+
+            // App logo + name
+            ctx.font="600 11px 'Jost',sans-serif";ctx.textAlign='center';ctx.textBaseline='middle';
+            ctx.fillStyle='#c9a96e';ctx.shadowColor='rgba(201,169,110,0.4)';ctx.shadowBlur=8;
+            ctx.fillText('🌸  LAST PIECE',PX+PW/2,PY+61);
+            ctx.shadowBlur=0;
+            ctx.font="400 9px 'Jost',sans-serif";ctx.fillStyle='rgba(245,240,232,0.55)';
+            ctx.fillText('FUNERAL SERVICES  ·  Est. 2019',PX+PW/2,PY+76);
+
+            // ── SEARCH BAR ──
+            ctx.fillStyle='rgba(255,255,255,0.08)';roundRect(ctx,PX+12,PY+96,PW-24,24,12);ctx.fill();
+            ctx.strokeStyle='rgba(201,169,110,0.3)';ctx.lineWidth=1;roundRect(ctx,PX+12,PY+96,PW-24,24,12);ctx.stroke();
+            ctx.fillStyle='rgba(245,240,232,0.35)';ctx.font="400 9px 'Jost',sans-serif";ctx.textAlign='left';ctx.textBaseline='middle';
+            ctx.fillText('🔍  funeral services near me...',PX+20,PY+108);
+
+            // ── RATING STARS ──
+            ctx.textAlign='center';ctx.fillStyle='#f1c40f';ctx.font='15px serif';
+            ctx.fillText('★★★★★',PX+PW/2-8,PY+134);
+            ctx.fillStyle='rgba(245,240,232,0.5)';ctx.font="400 9px 'Jost',sans-serif";
+            ctx.fillText('4.9 stars  ·  2,847 reviews',PX+PW/2,PY+150);
+
+            // Divider
+            ctx.strokeStyle='rgba(201,169,110,0.18)';ctx.lineWidth=1;
+            ctx.beginPath();ctx.moveTo(PX+15,PY+160);ctx.lineTo(PX+PW-15,PY+160);ctx.stroke();
+
+            // ── SERVICE LIST ──
+            ctx.textAlign='left';ctx.fillStyle='rgba(245,240,232,0.82)';ctx.font="500 10px 'Jost',sans-serif";
+            [
+                ['✓','Same-day arrangements'],
+                ['✓','We handle EVERYTHING'],
+                ['✓','24/7 compassionate care'],
+                ['✓','Transparent pricing'],
+                ['✓','No questions asked*'],
+            ].forEach(([check,label],i)=>{
+                ctx.fillStyle='#c9a96e';ctx.fillText(check,PX+16,PY+176+i*20);
+                ctx.fillStyle='rgba(245,240,232,0.82)';ctx.fillText(label,PX+28,PY+176+i*20);
+            });
+
+            // ── BIG CTA BUTTON ──
+            ctx.save();
+            const btnGlow=0.6+Math.sin(t*0.1)*0.4;
+            const btnGrad=ctx.createLinearGradient(PX+15,PY+275,PX+15,PY+302);
+            btnGrad.addColorStop(0,'#d4b47a');btnGrad.addColorStop(1,'#b8924a');
+            ctx.shadowColor=`rgba(201,169,110,${0.55*btnGlow})`;ctx.shadowBlur=16;
+            ctx.fillStyle=btnGrad;roundRect(ctx,PX+12,PY+272,PW-24,34,14);ctx.fill();
+            ctx.shadowBlur=0;
+            ctx.fillStyle='#111';ctx.textAlign='center';ctx.textBaseline='middle';
+            ctx.font="700 10px 'Jost',sans-serif";
+            ctx.fillText('📞  CALL NOW',PX+PW/2,PY+282);
+            ctx.font="600 9px 'Jost',sans-serif";
+            ctx.fillStyle='rgba(0,0,0,0.65)';
+            ctx.fillText('Free Consultation',PX+PW/2,PY+295);
+            ctx.restore();
+
+            ctx.restore();
+
+            // ── ANGELIC LIGHT BEAM ──
+            if(p>0.35){
+                ctx.save();ctx.globalAlpha=fadeIn(p,0.35,0.3)*0.2;
+                const bm=ctx.createLinearGradient(PX+PW/2,0,PX+PW/2,PY);
+                bm.addColorStop(0,'rgba(201,169,110,0.9)');bm.addColorStop(1,'rgba(201,169,110,0)');
+                ctx.fillStyle=bm;
+                ctx.beginPath();ctx.moveTo(PX+PW/2-90,0);ctx.lineTo(PX+PW/2+90,0);
+                ctx.lineTo(PX+PW/2+22,PY);ctx.lineTo(PX+PW/2-22,PY);ctx.closePath();ctx.fill();
+                ctx.restore();
+            }
+            // Speech bubble
+            if(p>0.3){
+                ctx.save();ctx.globalAlpha=fadeIn(p,0.3,0.2);
+                bubble(ctx,W*0.22,H*0.38,"Oh thank god,\nthere's an app! 😭",{fs:13,tail:'right'});ctx.restore();
+            }
+            // Family crowd over
+            if(p>0.55){
+                [[W*0.1,'#27ae60','worry'],[W*0.65,'#8e44ad','cry']].forEach(([fx,fc,fe],i)=>{
+                    ctx.save();ctx.globalAlpha=fadeIn(p,0.55+i*0.12,0.2);
+                    const rsw=Math.sin(t*0.08+i)*0.12;
+                    fig(ctx,fx,H*0.69,0.82,{expr:fe,col:fc,
+                        uArmL:-0.4+rsw,lArmL:0.3,uArmR:0.5-rsw,lArmR:-0.2,
+                        thighL:0.08+rsw*0.3,thighR:-0.08,shinL:0.05,shinR:0.05});
+                    if(i===0&&p>0.72){
+                        ctx.globalAlpha=fadeIn(p,0.72,0.15);
+                        bubble(ctx,fx,H*0.42,'what does\nit say?!',{fs:11});
+                    }
+                    ctx.restore();
+                });
+            }
+        }},
+
+        // 7 — ELEGANT CTA
+        { dur:6000, label:'', caption:'',
+          draw(ctx,W,H,p,t){
+            // Deep space bg
+            ctx.fillStyle='#05080f';ctx.fillRect(0,0,W,H);
+            // Stars
+            for(let i=0;i<120;i++){
+                const sx=(Math.sin(i*137.508)*0.5+0.5)*W;
+                const sy=(Math.cos(i*97.333)*0.5+0.5)*H;
+                const ss=0.5+Math.sin(i*31)*0.5;
+                ctx.save();ctx.globalAlpha=(0.3+Math.sin(t*0.04+i)*0.25)*clamp(p/0.1,0,1);
+                ctx.fillStyle='#ddeeff';ctx.beginPath();ctx.arc(sx,sy,ss,0,Math.PI*2);ctx.fill();ctx.restore();
+            }
+            // Subtle nebula
+            ctx.save();ctx.globalAlpha=0.04*clamp(p/0.15,0,1);
+            const nb=ctx.createRadialGradient(W*0.5,H*0.45,0,W*0.5,H*0.45,W*0.5);
+            nb.addColorStop(0,'#c9a96e');nb.addColorStop(1,'transparent');
+            ctx.fillStyle=nb;ctx.fillRect(0,0,W,H);ctx.restore();
+
+            const fadeA=p<0.08?p/0.08:1;
+            ctx.save();ctx.globalAlpha=fadeA;
+
+            // Lotus flower drawn
+            ctx.save();ctx.translate(W/2,H*0.22);
+            const rot=t*0.008;
+            for(let i=0;i<8;i++){
+                ctx.save();ctx.rotate(rot+i*Math.PI/4);
+                const pg=ctx.createLinearGradient(0,-38,0,-8);
+                pg.addColorStop(0,'#f0d080');pg.addColorStop(1,'#c9a96e');
+                ctx.fillStyle=pg;ctx.globalAlpha=0.85;
+                ctx.beginPath();ctx.ellipse(0,-24,7,18,0,0,Math.PI*2);ctx.fill();
+                ctx.restore();
+            }
+            ctx.fillStyle='#c9a96e';ctx.shadowColor='rgba(201,169,110,0.7)';ctx.shadowBlur=18;
+            ctx.beginPath();ctx.arc(0,0,10,0,Math.PI*2);ctx.fill();ctx.restore();
+
+            // Brand
+            ctx.shadowColor='rgba(0,0,0,0.6)';ctx.shadowBlur=14;
+            ctx.font="300 46px 'Cormorant Garamond',serif";ctx.fillStyle='#F5F0E8';
+            ctx.textAlign='center';ctx.textBaseline='middle';
+            ctx.fillText('Last Piece',W/2,H*0.43);
+            ctx.font="400 11px 'Jost',sans-serif";ctx.fillStyle='rgba(245,240,232,0.45)';
+            ctx.shadowBlur=0;ctx.fillText('F U N E R A L   S E R V I C E S',W/2,H*0.53);
+
+            // Gold divider animate in
+            ctx.save();ctx.globalAlpha=fadeA*fadeIn(p,0.1,0.25);
+            const dl=160*ease(fadeIn(p,0.1,0.3));
+            ctx.strokeStyle='rgba(201,169,110,0.35)';ctx.lineWidth=1;
+            ctx.beginPath();ctx.moveTo(W/2-dl,H*0.59);ctx.lineTo(W/2+dl,H*0.59);ctx.stroke();
+            ctx.restore();
+
+            // Tagline
+            ctx.globalAlpha=fadeA*fadeIn(p,0.22,0.2);
+            ctx.font="italic 400 18px 'Cormorant Garamond',serif";ctx.fillStyle='rgba(245,240,232,0.65)';
+            ctx.fillText('"Because life is full of surprises."',W/2,H*0.67);
+
+            // CTA button
+            ctx.globalAlpha=fadeA*fadeIn(p,0.4,0.25);
+            const pulse=0.93+Math.sin(t*0.07)*0.055;
+            ctx.save();ctx.translate(W/2,H*0.80);ctx.scale(pulse,pulse);
+            ctx.fillStyle='#c9a96e';ctx.shadowColor='rgba(201,169,110,0.55)';ctx.shadowBlur=22;
+            roundRect(ctx,-118,-24,236,48,24);ctx.fill();
+            ctx.fillStyle='#111';ctx.font="600 14px 'Jost',sans-serif";
+            ctx.shadowBlur=0;ctx.fillText('Visit lastpiece.com →',0,7);ctx.restore();
+
+            // Disclaimer
+            ctx.globalAlpha=fadeA*fadeIn(p,0.72,0.2)*0.32;
+            ctx.font="400 9px 'Jost',sans-serif";ctx.fillStyle='rgba(245,240,232,0.6)';
+            ctx.fillText('* No uncles were permanently harmed in the production of this advertisement.',W/2,H*0.94);
+
+            ctx.restore();
+        }},
+
+        ]; // end scenes array
+    }
+
+    // ── RUNNER ──────────────────────────────────────────────────
+    function runAnimation(){
+        const canvas=document.getElementById('intro-canvas');
+        if(!canvas) return;
+        const ctx=canvas.getContext('2d');
+        const W=canvas.width, H=canvas.height;
+        const labelEl=document.getElementById('anim-scene-label');
+        const capEl=document.getElementById('anim-caption');
+        const dotsEl=document.getElementById('anim-dots');
+
+        const SCENES=makeScenes(); // fresh each time — fixes the duplicate-push bug
+        const N=SCENES.length;
+
+        dotsEl.innerHTML='';
+        for(let i=0;i<N;i++){
+            const d=document.createElement('div');
+            d.id='adot'+i;
+            d.style.cssText='width:7px;height:7px;border-radius:50%;background:rgba(201,169,110,0.22);transition:background .3s,transform .3s';
+            dotsEl.appendChild(d);
+        }
+
+        let si=0, sceneT=null, t=0;
+
+        function frame(ts){
+            if(sceneT===null) sceneT=ts;
+            t++;
+            const elapsed=ts-sceneT;
+            const sc=SCENES[si];
+            const p=Math.min(1,elapsed/sc.dur);
+
+            ctx.clearRect(0,0,W,H);
+            try{ sc.draw(ctx,W,H,p,t); } catch(e){ console.warn('scene draw err',e); }
+
+            labelEl.textContent=sc.label||'';
+            labelEl.style.opacity=sc.label?'1':'0';
+            capEl.innerHTML=sc.caption||'';
+            for(let i=0;i<N;i++){
+                const d=document.getElementById('adot'+i);
+                if(d){
+                    d.style.background=i===si?'#c9a96e':'rgba(201,169,110,0.22)';
+                    d.style.transform=i===si?'scale(1.35)':'scale(1)';
+                }
+            }
+
+            if(p>=1){
+                si++;
+                if(si>=N){ setTimeout(closeIntro,1000); return; }
+                sceneT=ts;
+            }
+            _animRaf=requestAnimationFrame(frame);
+        }
+        _animRaf=requestAnimationFrame(frame);
+    }
+
+    // Always auto-play on load
+    window.addEventListener('DOMContentLoaded',()=>{
+        setTimeout(runAnimation, 500);
+    });
+    </script>
+
+    <script>
+    document.getElementById('mobile-menu-btn').addEventListener('click', () => {
+        document.getElementById('mobile-menu').classList.toggle('open');
+    });
+    document.querySelectorAll('a[href^="#"]').forEach(a => {
+        a.addEventListener('click', e => {
+            e.preventDefault();
+            const t = document.querySelector(a.getAttribute('href'));
+            if (t) t.scrollIntoView({ behavior: 'smooth' });
+        });
+    });
+    const obs = new IntersectionObserver(es => es.forEach(e => {
+        if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); }
+    }), { threshold: 0.1 });
+    document.querySelectorAll('.fade-in').forEach(el => obs.observe(el));
+
+    function toggleChat() {
+        const w = document.getElementById('chatbot-window');
+        const icon = document.getElementById('chat-icon');
+        const open = w.classList.toggle('open');
+        icon.className = open ? 'ph ph-x text-2xl' : 'ph ph-chat-circle-dots text-2xl';
+    }
+    async function sendChat() {
+        const inp = document.getElementById('chat-input');
+        const msg = inp.value.trim(); if (!msg) return;
+        inp.value = '';
+        const msgs = document.getElementById('chat-messages');
+        const ub = document.createElement('div'); ub.className = 'chat-msg-user'; ub.textContent = msg; msgs.appendChild(ub);
+        const tb = document.createElement('div'); tb.className = 'chat-msg-ai'; tb.textContent = '...'; msgs.appendChild(tb);
+        msgs.scrollTop = msgs.scrollHeight;
+        try {
+            const res = await fetch('https://api.anthropic.com/v1/messages', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 300,
+                    system: 'You are a compassionate advisor for Last Piece funeral home. Keep responses 2-3 sentences.',
+                    messages: [{ role: 'user', content: msg }] })
+            });
+            const data = await res.json();
+            tb.textContent = data.content?.[0]?.text || 'Please call us at 1-800-555-0199.';
+        } catch { tb.textContent = 'Please call us at 1-800-555-0199.'; }
+        msgs.scrollTop = msgs.scrollHeight;
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+        const container = document.getElementById('canvas-container');
+        if (!container) return;
+        const W = container.clientWidth || 800, H = container.clientHeight || 580;
+
+        // RENDERER
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(W, H);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        renderer.toneMapping = THREE.ReinhardToneMapping;
+        renderer.toneMappingExposure = 3.8;
+        container.appendChild(renderer.domElement);
+
+        // SCENE
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x06101e);
+        scene.fog = new THREE.FogExp2(0x06101e, 0.022);
+
+        // CAMERA — lower angle, closer, looking slightly down to see lid + nameplate clearly
+        const camera = new THREE.PerspectiveCamera(48, W / H, 0.1, 200);
+        camera.position.set(-3.5, 5.5, 9);
+        camera.lookAt(0, 0.5, -0.5);
+
+        // LIGHTS
+        scene.add(new THREE.AmbientLight(0x3050a0, 2.2));
+
+        // Moon — brighter cool blue-white
+        const moon = new THREE.DirectionalLight(0x7090d0, 1.8);
+        moon.position.set(8, 20, 5);
+        moon.castShadow = true;
+        moon.shadow.mapSize.width = 2048; moon.shadow.mapSize.height = 2048;
+        moon.shadow.camera.near = 0.5; moon.shadow.camera.far = 80;
+        moon.shadow.camera.left = -16; moon.shadow.camera.right = 16;
+        moon.shadow.camera.top = 16; moon.shadow.camera.bottom = -16;
+        scene.add(moon);
+
+        // Atmospheric fill from front — warm candlelight bounce
+        const fillLight = new THREE.DirectionalLight(0x604030, 0.8);
+        fillLight.position.set(0, 5, 12);
+        scene.add(fillLight);
+
+        // Dedicated plate light — warm white from above-front so gold reads clearly
+        const plateLight = new THREE.SpotLight(0xfff4cc, 5.0, 12, Math.PI * 0.22, 0.4, 1.0);
+        plateLight.position.set(0, 4, 5);
+        plateLight.target.position.set(0, 0, 1.2);
+        scene.add(plateLight);
+        scene.add(plateLight.target);
+
+        // Dedicated tombstone spotlight — shines directly on stone face
+        const stoneSpot = new THREE.SpotLight(0xb0c8e8, 3.5, 18, Math.PI * 0.18, 0.5, 1.2);
+        stoneSpot.position.set(0, 8, -1);
+        stoneSpot.target.position.set(0, 1.5, -4.2);
+        scene.add(stoneSpot);
+        scene.add(stoneSpot.target);
+
+        // Candle point lights — will be repositioned after candles are placed
+        const cl = [];
+        for (let i = 0; i < 4; i++) {
+            const pl = new THREE.PointLight(0xff7722, 6.0, 8.0);
+            scene.add(pl);
+            cl.push(pl);
+        }
+
+        // Tombstone red glow — in scene, child of masterGroup
+        const redGlow = new THREE.PointLight(0x660015, 4.5, 10);
+        redGlow.position.set(0, 2.5, -3.5);
+        scene.add(redGlow);
+
+        // Volumetric ground mist — subtle plane with additive blending
+        const mistGeo = new THREE.PlaneGeometry(20, 14);
+        const mistMat = new THREE.MeshBasicMaterial({
+            color: 0x1a2840, transparent: true, opacity: 0.06,
+            depthWrite: false
+        });
+        const mistPlane = new THREE.Mesh(mistGeo, mistMat);
+        mistPlane.rotation.x = -Math.PI / 2;
+        mistPlane.position.y = -0.68;
+        scene.add(mistPlane);
+
+        // STARS — denser, varied sizes
+        const sv = [], ss = [];
+        for (let i = 0; i < 900; i++) {
+            sv.push((Math.random() - 0.5) * 160, 8 + Math.random() * 40, (Math.random() - 0.5) * 160);
+            ss.push(Math.random() * 0.14 + 0.04);
+        }
+        const sg = new THREE.BufferGeometry();
+        sg.setAttribute('position', new THREE.Float32BufferAttribute(sv, 3));
+        scene.add(new THREE.Points(sg, new THREE.PointsMaterial({ color: 0xddeeff, size: 0.09, sizeAttenuation: true })));
+
+        // Moon disc in background
+        const moonDisc = new THREE.Mesh(
+            new THREE.CircleGeometry(2.2, 32),
+            new THREE.MeshBasicMaterial({ color: 0xd0d8f0, transparent: true, opacity: 0.18 })
+        );
+        moonDisc.position.set(12, 22, -30);
+        scene.add(moonDisc);
+
+        // Moon halo
+        const moonHalo = new THREE.Mesh(
+            new THREE.CircleGeometry(3.5, 32),
+            new THREE.MeshBasicMaterial({ color: 0x8090c0, transparent: true, opacity: 0.06 })
+        );
+        moonHalo.position.set(12, 22, -30.1);
+        scene.add(moonHalo);
+
+        // GROUND — dark earth, slightly lighter so scene reads better
+        const ground = new THREE.Mesh(
+            new THREE.PlaneGeometry(100, 100),
+            new THREE.MeshStandardMaterial({ color: 0x0c1a0c, roughness: 1.0, metalness: 0.0 })
+        );
+        ground.rotation.x = -Math.PI / 2;
+        ground.position.y = -0.72;
+        ground.receiveShadow = true;
+        scene.add(ground);
+
+        // Dirt mound under casket — oval raised earth
+        const moundGeo = new THREE.CylinderGeometry(1.3, 1.8, 0.18, 16);
+        const moundMat = new THREE.MeshStandardMaterial({ color: 0x0a0e08, roughness: 1.0 });
+        const mound = new THREE.Mesh(moundGeo, moundMat);
+        mound.position.set(0, -0.72 + 0.09, 0);
+        mound.scale.set(1, 1, 1.9);
+        mound.receiveShadow = true;
+        scene.add(mound);
+
+        // ─────────────────────────────────────────────────────────────
+        // MASTER GROUP — everything rotates together
+        // ─────────────────────────────────────────────────────────────
+        const masterGroup = new THREE.Group();
+        scene.add(masterGroup);
+
+        // CASKET MATERIALS
+        const woodMats = {
+            pine:     new THREE.MeshStandardMaterial({ color: 0xc09040, roughness: 0.55, metalness: 0.02 }),
+            oak:      new THREE.MeshStandardMaterial({ color: 0x7a4820, roughness: 0.50, metalness: 0.02 }),
+            cherry:   new THREE.MeshStandardMaterial({ color: 0x5c2210, roughness: 0.45, metalness: 0.03 }),
+            mahogany: new THREE.MeshStandardMaterial({ color: 0x3a1806, roughness: 0.40, metalness: 0.04 }),
+            walnut:   new THREE.MeshStandardMaterial({ color: 0x382818, roughness: 0.48, metalness: 0.02 }),
+            ebony:    new THREE.MeshStandardMaterial({ color: 0x0e0e0e, roughness: 0.28, metalness: 0.12 })
+        };
+        const hwMats = {
+            simple:   new THREE.MeshStandardMaterial({ color: 0x777777, metalness: 0.9,  roughness: 0.25 }),
+            silver:   new THREE.MeshStandardMaterial({ color: 0xcccccc, metalness: 0.95, roughness: 0.18 }),
+            black:    new THREE.MeshStandardMaterial({ color: 0x1a1a1a, metalness: 0.4,  roughness: 0.7  }),
+            bronze:   new THREE.MeshStandardMaterial({ color: 0xb86a1a, metalness: 0.82, roughness: 0.38 }),
+            ornate:   new THREE.MeshStandardMaterial({ color: 0xd4af37, metalness: 0.95, roughness: 0.12 }),
+            platinum: new THREE.MeshStandardMaterial({ color: 0xe0e0e0, metalness: 1.0,  roughness: 0.08 }),
+            none:     new THREE.MeshStandardMaterial({ color: 0x888888, metalness: 0.5,  roughness: 0.5  })
+        };
+
+        // CASKET SHAPE
+        const shape = new THREE.Shape();
+        shape.moveTo(-0.9, -2.2); shape.lineTo(0.9, -2.2); shape.lineTo(1.1, 0.5);
+        shape.lineTo(0.8, 2.8);   shape.lineTo(-0.8, 2.8); shape.lineTo(-1.1, 0.5); shape.closePath();
+        const geo = new THREE.ExtrudeGeometry(shape, { depth: 1.0, bevelEnabled: true, bevelSegments: 4, bevelSize: 0.12, bevelThickness: 0.18 });
+        geo.computeBoundingBox();
+        const bb = geo.boundingBox;
+        geo.translate(-0.5 * (bb.max.x + bb.min.x), -0.5 * (bb.max.y + bb.min.y), -0.5 * (bb.max.z + bb.min.z));
+
+        const casket = new THREE.Mesh(geo, woodMats.oak);
+        casket.rotation.x = -Math.PI / 2;
+        casket.castShadow = true; casket.receiveShadow = true;
+
+        const casketGroup = new THREE.Group();
+        casketGroup.add(casket);
+        casketGroup.position.set(0, -0.1, 0);
+        masterGroup.add(casketGroup);
+
+        // HANDLES
+        let handleMeshes = [];
+        function createHandles(type, mat) {
+            handleMeshes.forEach(h => casketGroup.remove(h)); handleMeshes = [];
+            if (!type || type === 'none') return;
+            [-1.3, 1.3].forEach(xPos => {
+                const g = new THREE.Group();
+                const bar = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 2.0, 10), mat);
+                bar.rotation.x = Math.PI / 2; g.add(bar);
+                if (type === 'ornate' || type === 'bronze') {
+                    [-1, 1].forEach(s => { const cap = new THREE.Mesh(new THREE.SphereGeometry(0.12, 10, 10), mat); cap.position.set(0, 0, s); g.add(cap); });
+                }
+                g.position.set(xPos, 0, 0); casketGroup.add(g); handleMeshes.push(g);
+            });
+        }
+
+        // NAME PLATE
+        let plateMesh = null, plateTex = null, plateTextMesh = null;
+
+        function makePlateTex(name, type) {
+            const PW = 1024, PH = 320;
+            const cv = document.createElement('canvas');
+            cv.width = PW; cv.height = PH;
+            const ctx = cv.getContext('2d');
+            const isGold = type === 'gold';
+
+            // ── METAL SURFACE ──
+            if (isGold) {
+                const bg = ctx.createLinearGradient(0, 0, PW, PH);
+                bg.addColorStop(0.00, '#e8c84a');
+                bg.addColorStop(0.20, '#f8e070');
+                bg.addColorStop(0.45, '#ffe878');
+                bg.addColorStop(0.60, '#d4a828');
+                bg.addColorStop(0.80, '#c89018');
+                bg.addColorStop(1.00, '#dab030');
+                ctx.fillStyle = bg; ctx.fillRect(0, 0, PW, PH);
+                // Brushed lines
+                ctx.globalAlpha = 0.06;
+                for (let y = 0; y < PH; y += 3) { ctx.fillStyle = y%6===0?'#fff':'#000'; ctx.fillRect(0,y,PW,1); }
+                ctx.globalAlpha = 1;
+                // Specular sheen
+                const sh = ctx.createRadialGradient(PW*0.25, PH*0.2, 0, PW*0.25, PH*0.2, PW*0.5);
+                sh.addColorStop(0,'rgba(255,255,220,0.35)'); sh.addColorStop(1,'rgba(255,255,220,0)');
+                ctx.fillStyle=sh; ctx.fillRect(0,0,PW,PH);
+            } else {
+                // Pure steel — no blue tint, just neutral gray
+                const bg = ctx.createLinearGradient(0, 0, PW, PH);
+                bg.addColorStop(0.0, '#a8a8a8');
+                bg.addColorStop(0.2, '#d8d8d8');
+                bg.addColorStop(0.5, '#e8e8e8');
+                bg.addColorStop(0.8, '#c8c8c8');
+                bg.addColorStop(1.0, '#b0b0b0');
+                ctx.fillStyle = bg; ctx.fillRect(0, 0, PW, PH);
+                // Brushed horizontal lines
+                ctx.globalAlpha = 0.07;
+                for (let y = 0; y < PH; y += 3) { ctx.fillStyle = y%6===0?'#fff':'#000'; ctx.fillRect(0,y,PW,1); }
+                ctx.globalAlpha = 1;
+                // Specular sheen
+                const sh = ctx.createRadialGradient(PW*0.3, PH*0.25, 0, PW*0.3, PH*0.25, PW*0.45);
+                sh.addColorStop(0,'rgba(255,255,255,0.4)'); sh.addColorStop(1,'rgba(255,255,255,0)');
+                ctx.fillStyle=sh; ctx.fillRect(0,0,PW,PH);
+            }
+
+            const engrave    = isGold ? '#3a2400' : '#1a1a1a';
+            const engraveSub = isGold ? '#5a3a00' : '#333333';
+            const dimCol     = isGold ? '#6a4400' : '#444444';
+
+            // ── RAISED BORDER ──
+            ctx.strokeStyle='rgba(0,0,0,0.45)'; ctx.lineWidth=8; ctx.strokeRect(4,4,PW-8,PH-8);
+            ctx.strokeStyle=isGold?'rgba(255,240,150,0.6)':'rgba(255,255,255,0.5)'; ctx.lineWidth=3;
+            ctx.beginPath(); ctx.moveTo(4,PH-4); ctx.lineTo(4,4); ctx.lineTo(PW-4,4); ctx.stroke();
+            ctx.strokeStyle='rgba(0,0,0,0.25)'; ctx.lineWidth=2; ctx.strokeRect(16,16,PW-32,PH-32);
+            ctx.strokeStyle=isGold?'rgba(255,240,120,0.35)':'rgba(255,255,255,0.3)'; ctx.lineWidth=1;
+            ctx.beginPath(); ctx.moveTo(16,PH-16); ctx.lineTo(16,16); ctx.lineTo(PW-16,16); ctx.stroke();
+
+            // ── RIVET SCREWS ──
+            [[36,36],[PW-36,36],[36,PH-36],[PW-36,PH-36]].forEach(([rx,ry]) => {
+                const rg = ctx.createRadialGradient(rx-2,ry-2,0,rx,ry,13);
+                rg.addColorStop(0, isGold?'#ffe88a':'#f0f0f0');
+                rg.addColorStop(0.4, isGold?'#c89020':'#a0a0a0');
+                rg.addColorStop(1, isGold?'#7a5000':'#606060');
+                ctx.fillStyle=rg; ctx.beginPath(); ctx.arc(rx,ry,13,0,Math.PI*2); ctx.fill();
+                ctx.strokeStyle='rgba(0,0,0,0.55)'; ctx.lineWidth=3; ctx.lineCap='round';
+                ctx.beginPath(); ctx.moveTo(rx-7,ry); ctx.lineTo(rx+7,ry); ctx.stroke();
+                ctx.strokeStyle=isGold?'rgba(255,240,150,0.5)':'rgba(255,255,255,0.45)'; ctx.lineWidth=1.5;
+                ctx.beginPath(); ctx.arc(rx,ry,13,Math.PI*1.2,Math.PI*1.8); ctx.stroke();
+            });
+
+            // ── ENGRAVED DIVIDERS ──
+            ctx.strokeStyle='rgba(0,0,0,0.2)'; ctx.lineWidth=1.5;
+            ctx.beginPath(); ctx.moveTo(70,72); ctx.lineTo(PW-70,72); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(70,PH-42); ctx.lineTo(PW-70,PH-42); ctx.stroke();
+            ctx.strokeStyle=isGold?'rgba(255,240,120,0.4)':'rgba(255,255,255,0.4)'; ctx.lineWidth=1;
+            ctx.beginPath(); ctx.moveTo(70,71); ctx.lineTo(PW-70,71); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(70,PH-43); ctx.lineTo(PW-70,PH-43); ctx.stroke();
+
+            ctx.textAlign='center'; ctx.textBaseline='middle';
+
+            // ── "In Loving Memory" ──
+            ctx.font='italic 500 28px Georgia,serif';
+            ctx.fillStyle='rgba(0,0,0,0.15)'; ctx.fillText('In Loving Memory',PW/2+1,49);
+            ctx.fillStyle=isGold?'rgba(255,240,160,0.45)':'rgba(255,255,255,0.4)'; ctx.fillText('In Loving Memory',PW/2-1,47);
+            ctx.fillStyle=engraveSub; ctx.fillText('In Loving Memory',PW/2,48);
+
+            // ── NAME ──
+            const nm = (name||'').trim() || 'Your Loved One';
+            const fs = nm.length>16 ? 68 : nm.length>10 ? 80 : 92;
+            ctx.font=`italic bold ${fs}px Georgia,serif`;
+            ctx.fillStyle='rgba(0,0,0,0.28)'; ctx.fillText(nm,PW/2+2,PH/2+14);
+            ctx.fillStyle=isGold?'rgba(255,240,160,0.25)':'rgba(255,255,255,0.2)'; ctx.fillText(nm,PW/2-1,PH/2+12);
+            ctx.fillStyle=engrave; ctx.fillText(nm,PW/2,PH/2+13);
+
+            // ── YEAR ──
+            ctx.font='italic 22px Georgia,serif';
+            ctx.fillStyle='rgba(0,0,0,0.15)'; ctx.fillText('✦  '+new Date().getFullYear()+'  ✦',PW/2+1,PH-27);
+            ctx.fillStyle=engraveSub; ctx.fillText('✦  '+new Date().getFullYear()+'  ✦',PW/2,PH-28);
+
+            if(plateTex) plateTex.dispose();
+            plateTex = new THREE.CanvasTexture(cv);
+            return plateTex;
+        }
+
+        function createPlate(type) {
+            if (plateMesh) { casketGroup.remove(plateMesh); plateMesh = null; plateTextMesh = null; }
+
+            const isGold = type === 'gold';
+            const pg = new THREE.Group();
+
+            // Frame box
+            const frame = new THREE.Mesh(
+                new THREE.BoxGeometry(1.60, 0.06, 0.52),
+                new THREE.MeshStandardMaterial({
+                    color:             isGold ? 0xd4a820 : 0xb8b8b8,
+                    emissive:          isGold ? 0x9a5e00 : 0x282828,
+                    emissiveIntensity: isGold ? 1.4 : 0.45,
+                    metalness: 0.95,
+                    roughness: isGold ? 0.15 : 0.22,
+                    polygonOffset: true,
+                    polygonOffsetFactor: -2,
+                    polygonOffsetUnits: -2,
+                })
+            );
+            pg.add(frame);
+
+            // Texture plane on top face, polygon offset to always render above frame
+            plateTextMesh = new THREE.Mesh(
+                new THREE.PlaneGeometry(1.54, 0.46),
+                new THREE.MeshBasicMaterial({
+                    map: makePlateTex(document.getElementById('engraving-text').value, type),
+                    transparent: false,
+                    polygonOffset: true,
+                    polygonOffsetFactor: -4,
+                    polygonOffsetUnits: -4,
+                })
+            );
+            plateTextMesh.rotation.x = -Math.PI / 2;
+            plateTextMesh.position.y = 0.031;
+            pg.add(plateTextMesh);
+
+            // Position: z=0 is the CENTER of the casket (flattest part of lid).
+            // The bevel curves the lid DOWN near both ends, so center is safest.
+            // Shift slightly toward head (negative Z) for neck area: z=-0.6
+            // Y: lid top = 0.68, frame half = 0.03, so center at 0.71
+            // Add 0.05 extra clearance → 0.76
+            pg.position.set(0, 0.76, -0.6);
+            casketGroup.add(pg);
+            plateMesh = pg;
+        }
+
+        // TOMBSTONE — in masterGroup so it rotates with casket
+        function makeEngraveTex(text, w, h, fs) {
+            const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+            const ctx = cv.getContext('2d');
+            // Slightly lighter stone background so text pops
+            ctx.fillStyle = '#1a1e2e'; ctx.fillRect(0, 0, w, h);
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            // Bright, high-contrast engraved text with strong glow
+            ctx.shadowColor = '#aabbdd'; ctx.shadowBlur = 18;
+            ctx.fillStyle = '#ccd8f0'; ctx.font = `italic bold ${fs}px Georgia,serif`;
+            ctx.fillText(text, w / 2, h / 2);
+            // Second pass for sharper edge
+            ctx.shadowBlur = 6;
+            ctx.fillStyle = '#e8f0ff';
+            ctx.fillText(text, w / 2, h / 2);
+            ctx.shadowBlur = 0;
+            return new THREE.CanvasTexture(cv);
+        }
+
+        let stoneNamePlane = null;
+        // Lighter stone — visible grey-blue so it reads well
+        const stM1 = new THREE.MeshStandardMaterial({ color: 0x2a2e44, roughness: 0.88, metalness: 0.10 });
+        const stM2 = new THREE.MeshStandardMaterial({ color: 0x323650, roughness: 0.85, metalness: 0.08 });
+        const crM  = new THREE.MeshStandardMaterial({ color: 0x1a1e30, roughness: 0.92, metalness: 0.06 });
+
+        const stoneG = new THREE.Group();
+        // Pull tombstone slightly closer so it's in frame, and raise it a touch
+        stoneG.position.set(0, -0.72, -3.8);
+
+        // Scale the whole stone group up 1.4x for better presence
+        stoneG.scale.set(1.4, 1.4, 1.4);
+
+        const base2 = new THREE.Mesh(new THREE.BoxGeometry(2.1, 0.28, 0.6), stM1);
+        base2.position.y = 0.14; base2.castShadow = true; base2.receiveShadow = true; stoneG.add(base2);
+        const slab2 = new THREE.Mesh(new THREE.BoxGeometry(1.6, 2.5, 0.28), stM2);
+        slab2.position.y = 1.54; slab2.castShadow = true; stoneG.add(slab2);
+
+        // Arch top
+        const archGeo = new THREE.CylinderGeometry(0.8, 0.8, 0.28, 24, 1, false, 0, Math.PI);
+        const archM = new THREE.Mesh(archGeo, stM2);
+        archM.rotation.y = -Math.PI / 2; archM.rotation.z = Math.PI / 2; archM.position.set(0, 2.74, 0);
+        archM.castShadow = true; stoneG.add(archM);
+
+        // Cross — sits on the arch above all text panels
+        const cV = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.84, 0.12), crM);
+        cV.position.set(0, 2.68, 0.17); stoneG.add(cV);
+        const cH = new THREE.Mesh(new THREE.BoxGeometry(0.54, 0.14, 0.12), crM);
+        cH.position.set(0, 2.90, 0.17); stoneG.add(cH);
+
+        // Text panels — recessed slightly lighter than slab
+        const recM = new THREE.MeshStandardMaterial({ color: 0x1e2236, roughness: 0.95 });
+        function addPanel(y, w, h, pW, pH, text, fs) {
+            const r = new THREE.Mesh(new THREE.BoxGeometry(w, h, 0.05), recM);
+            r.position.set(0, y, 0.15); stoneG.add(r);
+            const p = new THREE.Mesh(new THREE.PlaneGeometry(w - 0.04, h - 0.04),
+                new THREE.MeshBasicMaterial({ map: makeEngraveTex(text, pW, pH, fs), transparent: true }));
+            p.position.set(0, y, 0.178); stoneG.add(p); return p;
+        }
+        // Larger font sizes for all panels
+        addPanel(1.90, 1.0, 0.26, 700, 150, 'R . I . P .', 88);
+        stoneNamePlane = addPanel(1.32, 1.38, 0.56, 900, 200, 'Beloved Soul', 82);
+        addPanel(0.88, 1.34, 0.22, 900, 120, 'Forever In Our Hearts', 52);
+
+        masterGroup.add(stoneG);
+
+        // Tombstone glow plane — atmospheric moonlit backing
+        const glowGeo = new THREE.PlaneGeometry(4, 5.5);
+        const glowMat = new THREE.MeshBasicMaterial({ color: 0x2030a0, transparent: true, opacity: 0.10, depthWrite: false, side: THREE.DoubleSide });
+        const glowPlane = new THREE.Mesh(glowGeo, glowMat);
+        glowPlane.position.set(0, 2.0, -3.6);
+        masterGroup.add(glowPlane);
+
+        // FLOWERS — in masterGroup, arranged around casket
+        const fCols = [0x880022, 0xaa1133, 0x660011, 0x991122, 0x770011, 0xbb2244, 0x550011];
+        function makeFlower(x, z, col) {
+            const g = new THREE.Group();
+            const sm = new THREE.MeshStandardMaterial({ color: 0x0a1808, roughness: 0.9 });
+            const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.014, 0.30, 6), sm);
+            stem.position.y = 0.15; g.add(stem);
+            const pm = new THREE.MeshStandardMaterial({ color: col, roughness: 0.65, emissive: col, emissiveIntensity: 0.15 });
+            for (let i = 0; i < 6; i++) {
+                const p = new THREE.Mesh(new THREE.SphereGeometry(0.085, 7, 5), pm);
+                const a = (i / 6) * Math.PI * 2; p.position.set(Math.cos(a) * 0.10, 0.33, Math.sin(a) * 0.10);
+                p.scale.set(0.55, 0.35, 0.55); g.add(p);
+            }
+            const ctr = new THREE.Mesh(new THREE.SphereGeometry(0.06, 8, 8), new THREE.MeshStandardMaterial({ color: 0x110000 }));
+            ctr.position.y = 0.35; g.add(ctr);
+            // y = -0.72 is ground level relative to masterGroup (which sits at 0)
+            g.position.set(x, -0.72, z);
+            masterGroup.add(g);
+        }
+        // Flowers clustered around front of tombstone
+        [[-0.5,-3.3],[-0.15,-3.2],[0.2,-3.35],[0.5,-3.2],[-0.38,-3.5],[0.3,-3.5],[0,-3.1],[-0.7,-3.1],[0.7,-3.1]]
+            .forEach(([x,z],i) => makeFlower(x, z, fCols[i % fCols.length]));
+        // Additional flowers along casket sides
+        [[-1.5, 0.5],[-1.5,-0.5],[1.5,0.5],[1.5,-0.5],[-1.5,1.2],[1.5,1.2]]
+            .forEach(([x,z],i) => makeFlower(x, z, fCols[(i+2) % fCols.length]));
+
+        // TREES — in masterGroup
+        function makeTree(x, z, s) {
+            const tM = new THREE.MeshStandardMaterial({ color: 0x0d1a0d, roughness: 1 });
+            const lM = new THREE.MeshStandardMaterial({ color: 0x0e1a0e, roughness: 1 });
+            const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.08 * s, 0.13 * s, 1.6 * s, 7), tM);
+            trunk.position.set(x, -0.72 + 0.8 * s, z);
+            trunk.castShadow = true; masterGroup.add(trunk);
+            [0, 1.1, 2.1].forEach((yo, i) => {
+                const r = (0.4 - i * 0.09) * s, h = (1.8 - i * 0.35) * s;
+                const cone = new THREE.Mesh(new THREE.ConeGeometry(r, h, 7), lM);
+                cone.position.set(x, -0.72 + 1.4 * s + yo * s, z);
+                cone.castShadow = true; masterGroup.add(cone);
+            });
+        }
+        makeTree(-6, -2, 1.5); makeTree(6, -2, 1.3); makeTree(-9, 1, 1.1);
+        makeTree(9, 1, 1.2); makeTree(-4, -7, 1.4); makeTree(4, -7, 1.2);
+        makeTree(-11, -4, 1.0); makeTree(11, -4, 1.0);
+
+        // ─────────────────────────────────────────────────────────────
+        // CANDLES — on the GROUND around the casket, in masterGroup
+        // Candle positions: corners + sides at ground level
+        // ─────────────────────────────────────────────────────────────
+        const candleObjs = [];
+        const candlePositions = [
+            [-1.6,  2.6],  // front-left
+            [ 1.6,  2.6],  // front-right
+            [-1.6, -2.4],  // back-left
+            [ 1.6, -2.4],  // back-right
+        ];
+
+        function makeGroundCandle(x, z) {
+            const g = new THREE.Group();
+
+            // Wax drip base puddle
+            const puddle = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.09, 0.09, 0.03, 12),
+                new THREE.MeshStandardMaterial({ color: 0xddddcc, roughness: 0.9 })
+            );
+            puddle.position.y = 0.015;
+            g.add(puddle);
+
+            // Candle body
+            const body = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.06, 0.065, 0.65, 12),
+                new THREE.MeshStandardMaterial({ color: 0xeeeedd, roughness: 0.85 })
+            );
+            body.position.y = 0.355;
+            body.castShadow = true;
+            g.add(body);
+
+            // Wax drips
+            [-0.03, 0.04, -0.02].forEach((dx, i) => {
+                const drip = new THREE.Mesh(
+                    new THREE.CylinderGeometry(0.012, 0.008, 0.12 + i * 0.04, 6),
+                    new THREE.MeshStandardMaterial({ color: 0xe8e8d8, roughness: 0.9 })
+                );
+                drip.position.set(dx + Math.cos(i * 2.1) * 0.045, 0.60 - i * 0.03, Math.sin(i * 2.1) * 0.045);
+                g.add(drip);
+            });
+
+            // Wick
+            const wick = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.007, 0.007, 0.08, 6),
+                new THREE.MeshStandardMaterial({ color: 0x111111 })
+            );
+            wick.position.y = 0.72;
+            g.add(wick);
+
+            // Flame outer
+            const flame = new THREE.Mesh(
+                new THREE.ConeGeometry(0.05, 0.22, 10),
+                new THREE.MeshBasicMaterial({ color: 0xff6600 })
+            );
+            flame.position.y = 0.84;
+            g.add(flame);
+
+            // Flame inner (brighter core)
+            const core = new THREE.Mesh(
+                new THREE.ConeGeometry(0.022, 0.13, 8),
+                new THREE.MeshBasicMaterial({ color: 0xffdd44 })
+            );
+            core.position.y = 0.85;
+            g.add(core);
+
+            // Subtle glow disc on ground
+            const glow = new THREE.Mesh(
+                new THREE.CircleGeometry(0.35, 16),
+                new THREE.MeshBasicMaterial({ color: 0xff5500, transparent: true, opacity: 0.08, depthWrite: false })
+            );
+            glow.rotation.x = -Math.PI / 2;
+            glow.position.y = 0.01;
+            g.add(glow);
+
+            g.position.set(x, -0.72, z);
+            masterGroup.add(g);
+            candleObjs.push({ flame, core, glow });
+        }
+
+        candlePositions.forEach(([x, z]) => makeGroundCandle(x, z));
+
+        // Position candle point lights at ground candle locations
+        candlePositions.forEach(([x, z], i) => {
+            cl[i].position.set(x, -0.72 + 0.85, z);
+        });
+        // Move redGlow inside masterGroup
+        masterGroup.add(redGlow);
+
+        // Update plate text / stone name
+        function updatePlateText() {
+            const type = document.getElementById('plate-select').value;
+            const name = document.getElementById('engraving-text').value;
+            // Rebuild entire plate so frame metal color updates too
+            createPlate(type);
+            if (stoneNamePlane) {
+                stoneNamePlane.material.map = makeEngraveTex(name || 'Beloved Soul', 900, 200, 82);
+                stoneNamePlane.material.needsUpdate = true;
+            }
+        }
+
+        // DRAG
+        let dragging = false, prevX = 0, targetY = 0;
+        container.addEventListener('mousedown', () => dragging = true);
+        window.addEventListener('mouseup', () => dragging = false);
+        window.addEventListener('mousemove', e => { if (dragging) targetY += (e.clientX - prevX) * 0.01; prevX = e.clientX; });
+        container.addEventListener('touchstart', e => { dragging = true; prevX = e.touches[0].clientX; }, { passive: true });
+        window.addEventListener('touchend', () => dragging = false);
+        window.addEventListener('touchmove', e => { if (dragging) { targetY += (e.touches[0].clientX - prevX) * 0.01; prevX = e.touches[0].clientX; } }, { passive: true });
+
+        // ANIMATE
+        let t = 0;
+        function animate() {
+            requestAnimationFrame(animate); t += 0.016;
+            masterGroup.rotation.y += (targetY - masterGroup.rotation.y) * 0.07;
+
+            // Flickering candle intensities
+            const f = [
+                0.88 + Math.sin(t * 5.1) * 0.26 + Math.sin(t * 13.7) * 0.10,
+                0.88 + Math.sin(t * 4.7 + 1.2) * 0.26 + Math.sin(t * 11.3) * 0.10,
+                0.88 + Math.sin(t * 5.6 + 2.1) * 0.26 + Math.sin(t * 14.1) * 0.10,
+                0.88 + Math.sin(t * 4.3 + 3.0) * 0.26 + Math.sin(t * 12.5) * 0.10
+            ];
+            cl.forEach((light, i) => { light.intensity = f[i] * 7.0; });
+            redGlow.intensity = 2.5 + Math.sin(t * 2.8) * 0.8;
+
+            // Flame animations
+            candleObjs.forEach((c, i) => {
+                const fi = f[i] || f[0];
+                c.flame.scale.set(fi * 0.9, fi, fi * 0.9);
+                c.core.scale.set(fi, fi * 1.1, fi);
+                c.flame.rotation.y = t * 2 + i;
+                c.glow.material.opacity = 0.05 + fi * 0.07;
+            });
+
+            // Subtle mist pulse
+            mistMat.opacity = 0.04 + Math.sin(t * 0.3) * 0.02;
+
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        window.addEventListener('resize', () => {
+            const w = container.clientWidth, h = container.clientHeight || 580;
+            renderer.setSize(w, h); camera.aspect = w / h; camera.updateProjectionMatrix();
+        });
+
+        // UI SYNC
+        const woodSel = document.getElementById('wood-select');
+        const sizeSel = document.getElementById('size-select');
+        const desSel  = document.getElementById('design-select');
+        const plateSel = document.getElementById('plate-select');
+        const engInput = document.getElementById('engraving-text');
+
+        function updateCustomizer() {
+            casket.material = woodMats[woodSel.value] || woodMats.oak;
+            switch (sizeSel.value) {
+                case 'compact':   casketGroup.scale.set(0.9, 0.9, 0.95); break;
+                case 'std_wide':  casketGroup.scale.set(1.15, 1, 1); break;
+                case 'oversized': casketGroup.scale.set(1.15, 1, 1.15); break;
+                default:          casketGroup.scale.set(1, 1, 1);
+            }
+            const hwMat = hwMats[desSel.value] || hwMats.simple;
+            createHandles(desSel.value, hwMat);
+            createPlate(plateSel.value);
+            const total = [woodSel, sizeSel, desSel, plateSel]
+                .reduce((s, sel) => s + (parseInt(sel.options[sel.selectedIndex]?.dataset.price) || 0), 0);
+            document.getElementById('total-price').textContent = '$' + total.toLocaleString() + '.00';
+        }
+
+        [woodSel, sizeSel, desSel].forEach(s => s.addEventListener('change', updateCustomizer));
+        plateSel.addEventListener('change', () => { updateCustomizer(); });
+        engInput.addEventListener('input', updatePlateText);
+        updateCustomizer();
+    });
+    </script>
+</body>
+</html>
